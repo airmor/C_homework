@@ -52,6 +52,9 @@ private:
 private:
     const int L_role_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
     const int R_role_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
+    const int L_card_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
+    const int R_card_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
+    const int place_to_card[num_of_attribute][2]={{1,1},{2,2},{3,3},{4,4}};
 
 };
 
