@@ -24,8 +24,12 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
 protected:
-void paintEvent(QPaintEvent* event)override;
+    void paintEvent(QPaintEvent* event)override;
+
+public:
+    float size=1.0;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -35,8 +39,8 @@ private:
     Ui::MainWindow *ui;
 
 private:
-    QString backboard;
-    const QString backboard1="ff";
+    const QString backboard1="scource/backboard.png";
+    QString backboard=backboard1;
 };
 
 class Ui::role_paint : public QMainWindow
