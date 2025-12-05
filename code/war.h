@@ -11,8 +11,8 @@ struct role_base;
 struct role_current;
 struct team;
 extern const struct role::role_base all_role_base[all_role_number];
-extern struct role::team left;
-extern struct role::team right;
+extern struct role::team left_team;
+extern struct role::team right_team;
 }
 
 namespace fight{
@@ -34,6 +34,7 @@ struct role::role_base
 
 struct role::role_current
 {
+    int name_number;
     int blood;
     float camp_influence;
 };
@@ -48,5 +49,13 @@ struct fight::fight_current{
 
 };
 
+class fight::a_fight{
+public:
+    static void tmp();
+
+};
+
 
 #endif // WAR_H
+
+

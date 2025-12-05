@@ -9,6 +9,7 @@
 QT_BEGIN_NAMESPACE
 namespace random{
     int xdy(int x,int y);
+    int a_to_b(int a,int b);
 }
 QT_END_NAMESPACE
 
