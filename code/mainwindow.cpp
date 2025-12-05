@@ -3,6 +3,7 @@
 #include<QPaintEvent>
 #include<QPainter>//绘图
 #include<QPixmap>//图片
+//#include<QImage>
 #include<QCursor>
 #include<QMetaEnum>
 #include "war.h"
@@ -15,6 +16,7 @@ namespace Ui {
 float size=0.5;
 struct LIGHT light;
 }
+
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
@@ -33,13 +35,37 @@ void MainWindow::paintEvent(QPaintEvent *event)
     }
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button()== Qt::MouseButton::LeftButton)
+    {
+        qDebug()<<"鼠标左键按下"<<":"<<event->pos();
+        lightPaint->update();
+    }
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    qDebug()<<"按键按下";
+    if(event->key()==Qt::Key_Left)
+    {
+        qDebug()<<"检测到Left按下";
+    }
+    if(event->key()==Qt::Key_Right)
+    {
+        qDebug()<<"检测到Right按下";
+    }
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     ,rolePaint(nullptr)
+    ,lightPaint(nullptr)
 {
     ui->setupUi(this);
     rolePaint = new Ui::role_paint(this);
+    lightPaint = new Ui::light_paint(this);
     this->setFixedSize(3072*Ui::size,1836*Ui::size);
     fight::a_fight::tmp();
     update();
@@ -88,12 +114,16 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
             break;
         }
         if(!this->path_role.isEmpty()) {
-            QPixmap pix;
-            //QImage pix;
+            //QPixmap pix;
+            QImage pix;
             // 直接加载资源路径
-
             if(pix.load(this->path_role)) {
-                painter.drawPixmap(L_role_place[i][0]*Ui::size,L_role_place[i][1]*Ui::size,224*Ui::size,224*Ui::size, pix);
+                // 水平翻转（左右翻折）
+                QImage flippedImage = pix.flipped(Qt::Horizontal);
+
+                // 转换为QPixmap绘制
+                QPixmap flippedPixmap = QPixmap::fromImage(flippedImage);
+                painter.drawPixmap(L_role_place[i][0]*Ui::size,L_role_place[i][1]*Ui::size,224*Ui::size,224*Ui::size, flippedPixmap);
             } else {
                 qDebug() << "Failed to load pixmap:" << this->path_role;
             }
@@ -105,11 +135,49 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
 
             if(pix.load(this->path_card)) {
                 painter.drawPixmap(L_card_place[i][0]*Ui::size,L_card_place[i][1]*Ui::size,187*Ui::size,567*Ui::size, pix);
+                QFont font("Arial", 36*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                // 或者逐个设置
+                // font.setFamily("Arial");
+                // font.setPointSize(36);
+                // font.setBold(true);
+
+                // 设置抗锯齿
+                painter.setRenderHint(QPainter::Antialiasing);
+
+                // 应用字体
+                painter.setFont(font);
+
+                // 设置白色画笔
+                painter.setPen(Qt::white);
+
+                // 绘制数字
+                painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[i].blood));
+                painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[i].blood));
+                painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::all_role_base[role_path_l[i]].attack));
+                painter.drawText((L_card_place[i][0]+place_to_card[3][0])*Ui::size,(L_card_place[i][1]+place_to_card[3][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
             } else {
                 qDebug() << "Failed to load pixmap:" << this->path_card;
             }
         }
     }
 }
+
+
+
+Ui::light_paint::light_paint(QWidget *parent)
+{
+
+}
+
+Ui::light_paint::~light_paint()
+{
+
+}
+
+void Ui::light_paint::paintEvent(QPaintEvent *event)
+{
+
+}
+
 
 

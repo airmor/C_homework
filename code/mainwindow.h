@@ -19,6 +19,7 @@ namespace Ui {
 extern float size;
 class MainWindow;
 class role_paint;
+class light_paint;
 struct LIGHT;
 extern struct LIGHT light;
 }
@@ -31,6 +32,8 @@ class MainWindow : public QMainWindow
 
 protected:
     void paintEvent(QPaintEvent* event)override;
+    void mousePressEvent(QMouseEvent *event)override;
+    void keyPressEvent(QKeyEvent *event)override;
 
 public:
     MainWindow(QWidget *parent = nullptr);
@@ -39,11 +42,14 @@ public:
 private:
     Ui::MainWindow *ui;
     Ui::role_paint *rolePaint;
+    Ui::light_paint *lightPaint;
 
 private:
     const QString backboard1="source/backboard.png";
     QString backboard=backboard1;
 };
+
+
 //role_paint
 class Ui::role_paint : public QWidget
 {
@@ -66,7 +72,7 @@ private:
     const int R_role_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
     const int L_card_place[max_of_a_team][2]={{1259,1145},{1069,1145},{878,1145},{688,1145},{496,1145},{305,1145}};
     const int R_card_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
-    const int place_to_card[num_of_attribute][2]={{1,1},{2,2},{3,3},{4,4}};
+    const int place_to_card[num_of_attribute][2]={{80,250},{75,340},{80,420},{85,513}};
     const int card_pool_place[max_of_card_pool][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
 
 public:
@@ -82,6 +88,18 @@ public:
         "source/roles/mushi_simple.png",
         "source/roles/sheshou_simple.png"
     };
+
+};
+
+class Ui::light_paint : public QWidget
+{
+
+public:
+    explicit light_paint(QWidget *parent = nullptr);  // 添加构造函数声明
+    ~light_paint();
+
+protected:
+    void paintEvent(QPaintEvent* event)override;
 
 };
 
