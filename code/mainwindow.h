@@ -29,7 +29,7 @@ protected:
     void paintEvent(QPaintEvent* event)override;
 
 public:
-    float size=1.0;
+    float size=0.5;
 
 public:
     MainWindow(QWidget *parent = nullptr);

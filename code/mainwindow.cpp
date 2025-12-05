@@ -21,7 +21,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         // 直接加载资源路径
 
         if(pix.load(this->backboard)) {
-            painter.drawPixmap(0, 0,307*5*size,183*5*size, pix);
+            painter.drawPixmap(0, 0,3072*size,1836*size, pix);
         } else {
             qDebug() << "Failed to load pixmap:" << this->backboard;
         }
@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    this->setFixedSize(3072*size,1836*size);
     QPaintEvent *event;
     MainWindow::paintEvent(event);
 }
