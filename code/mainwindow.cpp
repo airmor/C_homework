@@ -40,7 +40,11 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     if(event->button()== Qt::MouseButton::LeftButton)
     {
         qDebug()<<"鼠标左键按下"<<":"<<event->pos();
-        lightPaint->update();
+        int x=event->pos().x();
+        int y=event->pos().y();//二叉树搜索
+        if(x>1 && x<2 && y>1 && y<2 ){
+
+        }
     }
 }
 

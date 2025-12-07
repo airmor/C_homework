@@ -14,6 +14,7 @@ qt_add_executable(C_homework
     war.cpp war.h
     random.cpp random.h
     define_the_const.h
+    gacha.h gacha.cpp
 )
 
 target_link_libraries(C_homework
