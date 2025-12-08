@@ -51,14 +51,35 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 void MainWindow::keyPressEvent(QKeyEvent *event)
 {
     qDebug()<<"按键按下";
-    if(event->key()==Qt::Key_Left)
+    if(event->key()==Qt::Key_Left || event->key()==Qt::Key_A)
     {
-        qDebug()<<"检测到Left按下";
+        qDebug()<<"检测到Left/A按下";
     }
-    if(event->key()==Qt::Key_Right)
+    if(event->key()==Qt::Key_Right || event->key()==Qt::Key_D)
     {
-        qDebug()<<"检测到Right按下";
+        qDebug()<<"检测到Righ/D按下";
     }
+    if(event->key()==Qt::Key_Minus || event->key()==Qt::Key_Underscore)
+    {
+        qDebug()<<"检测到-/_按下";
+        Ui::size*=0.9523809523809524;
+        update();
+        rolePaint->update();
+        this->setFixedSize(3072*Ui::size,1836*Ui::size);
+    }
+    if(event->key()==Qt::Key_Plus || event->key()==Qt::Key_Equal)
+    {
+        qDebug()<<"检测到-/_按下";
+        Ui::size*=1.05;
+        update();
+        rolePaint->update();
+        this->setFixedSize(3072*Ui::size,1836*Ui::size);
+    }
+}
+
+void MainWindow::wheelEvent(QWheelEvent *event)
+{
+
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -156,8 +177,8 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
 
                 // 绘制数字
                 painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[i].blood));
-                painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[i].blood));
-                painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::all_role_base[role_path_l[i]].attack));
+                painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::all_role_base[role_path_l[i]].attack[0])+"d"+QString::number(role::all_role_base[role_path_l[i]].attack[1]));
+                painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::all_role_base[role_path_l[i]].attack[0])+"d"+QString::number(role::all_role_base[role_path_l[i]].attack[1]));
                 painter.drawText((L_card_place[i][0]+place_to_card[3][0])*Ui::size,(L_card_place[i][1]+place_to_card[3][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
             } else {
                 qDebug() << "Failed to load pixmap:" << this->path_card;

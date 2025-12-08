@@ -34,6 +34,7 @@ protected:
     void paintEvent(QPaintEvent* event)override;
     void mousePressEvent(QMouseEvent *event)override;
     void keyPressEvent(QKeyEvent *event)override;
+    void wheelEvent(QWheelEvent *event)override;
 
 public:
     MainWindow(QWidget *parent = nullptr);
