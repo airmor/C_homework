@@ -6,4 +6,8 @@
 #define num_of_attribute 4
 #define max_of_card_pool 12
 
+enum buttom{
+    no=0,begin,buy,up,re,l,m,r,t1,t2,t3,t4,t5,t6,big
+};
+
 #endif // DEFINE_THE_CONST_H

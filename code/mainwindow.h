@@ -37,6 +37,14 @@ protected:
     void wheelEvent(QWheelEvent *event)override;
 
 public:
+    static int get_buttom(){
+        return buttom;
+    };
+
+private:
+    static int buttom;
+
+public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 

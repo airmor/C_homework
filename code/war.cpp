@@ -16,7 +16,18 @@ const struct role_base all_role_base[all_role_number]={
     {"射手",3,15,15,{2,6},{1,1}}//乱写的数据
 };
 struct team left_team;
-struct team right_team;
+struct enemy* root;
+
+void enemy_change::die(int num)
+{
+
+}
+
+void enemy_change::add()
+{
+
+}
+
 }
 
 using namespace role;
