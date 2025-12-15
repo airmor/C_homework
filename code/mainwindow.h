@@ -20,6 +20,7 @@ extern float size;
 class MainWindow;
 class role_paint;
 class light_paint;
+class pool_paint;
 struct LIGHT;
 extern struct LIGHT light;
 }
@@ -77,14 +78,13 @@ private:
     QString path_card;
 
 private:
-    const int L_role_place[max_of_a_team][2]={{1135,548},{880,548},{632,548},{377,548},{5,548},{6,548}};
-    const int R_role_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
-    const int L_card_place[max_of_a_team][2]={{1259,1145},{1069,1145},{878,1145},{688,1145},{496,1145},{305,1145}};
-    const int R_card_place[max_of_a_team][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
-    const int place_to_card[num_of_attribute][2]={{80,250},{75,340},{80,420},{85,513}};
-    const int card_pool_place[max_of_card_pool][2]={{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}};
+    const int L_role_place[max_of_a_team][2]={{1248,564},{1004,564},{758,564},{517,564},{271,564},{27,564}};
+    const int R_role_place[max_of_a_team][2]={{1600,564},{1844,564},{2090,564},{2331,564},{2577,564},{2821,564}};
+    const int L_card_place[max_of_a_team][2]={{1223,1149},{1002,1149},{777,1149},{556,1149},{335,1149},{114,1149}};
+    const int R_card_place[max_of_a_team][2]={{1626,1149},{1847,1149},{2068,1149},{2289,1149},{2514,1149},{2735,1149}};
+    const int place_to_card[num_of_attribute][2]={{105,290},{93,390},{75,530}};
 
-public:
+private:
     const char all_role_path[all_role_number][30]={
         "source/roles/zhanshi.png",
         "source/roles/fashi.png",
@@ -113,7 +113,43 @@ protected:
 };
 
 struct Ui::LIGHT{
-    int* card_type;
+    int s;//开关 0：关 1：正常开 2：放大
+    int type;//类型-1->左边，1->右边,0->没有
+    int num;//第几个
+    int name;
+};
+
+class Ui::pool_paint : public QWidget
+{
+
+public:
+    explicit pool_paint(QWidget *parent = nullptr);  // 添加构造函数声明
+    ~pool_paint();
+
+protected:
+    void paintEvent(QPaintEvent* event)override;
+
+private:
+    QString simple_path;
+    QString big_path;
+
+private:
+    const int card_pool_place[max_of_card_pool][2]={{1608,1167},{2050,1167},{2480,1167}};
+
+private:
+    QString backboard="source/window/window1.png";
+    const char simple[all_role_number][40]={
+        "source/roles/zhanshi_simple2.png",
+        "source/roles/fashi_simple2.png",
+        "source/roles/mushi_simple2.png",
+        "source/roles/sheshou_simple2.png"
+    };
+    const char big[all_role_number][40]={
+        "source/roles/zhanshi_mianbang.png",
+        "source/roles/fashi_mianbang.png",
+        "source/roles/mushi_mianbang.png",
+        "source/roles/sheshou_mianbang.png"
+    };
 };
 
 #endif // MAINWINDOW_H
