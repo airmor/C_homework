@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include<QPaintEvent>
@@ -88,6 +92,8 @@ MainWindow::MainWindow(QWidget *parent)
     ,rolePaint(nullptr)
     ,lightPaint(nullptr)
 {
+    // 使用当前时间作为种子
+    srand((unsigned)time(NULL));
     ui->setupUi(this);
     rolePaint = new Ui::role_paint(this);
     lightPaint = new Ui::light_paint(this);
