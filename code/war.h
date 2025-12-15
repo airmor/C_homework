@@ -9,12 +9,16 @@ QT_BEGIN_NAMESPACE
 namespace role {
 struct enemy;
 class enemy_change;
+struct enemy_base;
 struct role_base;
 struct role_current;
 struct team;
+class skill;
+class enemy_skill;
 extern const struct role::role_base all_role_base[all_role_number];
 extern struct role::team left_team;
 extern struct enemy* root;
+extern const struct role::enemy_base all_enemy_base[4];
 }
 
 namespace fight{
@@ -68,15 +72,34 @@ public:
 
 struct fight::change{
     int left[6][2];
-    //第一个数字代表是第几个角色数据有变化，比如左边队伍从右往左第2个角色扣1滴血 left[0][0]=2//第二个角色 left[0][0]=-1//扣1滴血，回血就是正的 多个变化就left[1],left[2]多的全部归0
+    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非1，没有为0，j表示变化,回血就是正的,扣血为负数
     int right[6][2];
-    //第一个数字代表是第几个角色数据有变化，比如右边队伍从左往右第2个角色扣1滴血
 };
 
 class role::enemy_change{
 public:
-    void die(int num);
-    void add();
+    void die(enemy_change* p);
+    void add(int num);
+};
+
+struct role::enemy_base{
+    char name[20];
+    int name_number;
+    int blood;
+    int attack[2];
+};
+
+class role::skill{
+    void skill0();
+    void skill1();
+    //………………
+};
+
+class role::enemy_skill{
+    int zhanshi(int level);
+    int fashi(int level);
+    int sheshou(int level);
+    int mushi(int level);
 };
 
 
