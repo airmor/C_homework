@@ -23,6 +23,7 @@ class light_paint;
 class pool_paint;
 struct LIGHT;
 extern struct LIGHT light;
+extern int dur;//阶段 0：战斗 1：抽卡 2：结算
 }
 
 QT_END_NAMESPACE
@@ -48,11 +49,14 @@ private:
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    int main();
+    void all_update();
 
 private:
     Ui::MainWindow *ui;
     Ui::role_paint *rolePaint;
     Ui::light_paint *lightPaint;
+    Ui::pool_paint *poolPaint;
 
 private:
     const QString backboard1="source/backboard.png";
@@ -82,7 +86,7 @@ private:
     const int R_role_place[max_of_a_team][2]={{1600,564},{1844,564},{2090,564},{2331,564},{2577,564},{2821,564}};
     const int L_card_place[max_of_a_team][2]={{1223,1149},{1002,1149},{777,1149},{556,1149},{335,1149},{114,1149}};
     const int R_card_place[max_of_a_team][2]={{1626,1149},{1847,1149},{2068,1149},{2289,1149},{2514,1149},{2735,1149}};
-    const int place_to_card[num_of_attribute][2]={{105,290},{93,390},{75,530}};
+    const int place_to_card[num_of_attribute][2]={{90,290},{93,390},{75,530}};
 
 private:
     const char all_role_path[all_role_number][30]={
@@ -107,6 +111,10 @@ public:
     explicit light_paint(QWidget *parent = nullptr);  // 添加构造函数声明
     ~light_paint();
 
+private:
+    const int L_card_place[max_of_a_team][2]={{1223,1149},{1002,1149},{777,1149},{556,1149},{335,1149},{114,1149}};
+    const int card_pool_place[max_of_card_pool][2]={{1608,1167},{2050,1167},{2480,1167}};
+
 protected:
     void paintEvent(QPaintEvent* event)override;
 
@@ -114,7 +122,7 @@ protected:
 
 struct Ui::LIGHT{
     int s;//开关 0：关 1：正常开 2：放大
-    int type;//类型-1->左边，1->右边,0->没有
+    int type;//类型1->左边，2->右边,0->没有
     int num;//第几个
     int name;
 };

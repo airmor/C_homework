@@ -62,8 +62,8 @@ void fight::a_fight::tmp()//测试用函数，无用可注释掉。
 
     role::left_team.num=4;
     role::left_team.each[0]={0,1,1.1};
-    role::left_team.each[1]={1,1,1.1};
-    role::left_team.each[2]={2,1,1.1};
+    role::left_team.each[1]={0,3,1.1};
+    role::left_team.each[2]={0,2,1.1};
     role::left_team.each[3]={3,1,1.1};
 }
 

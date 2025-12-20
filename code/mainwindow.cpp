@@ -10,11 +10,14 @@
 //#include<QImage>
 #include<QCursor>
 #include<QMetaEnum>
+#include <QPen>
+#include <QBrush>
 #include "war.h"
 #include "gacha.h"
 namespace Ui {
 float size=0.5;
 struct LIGHT light;
+int dur;
 }
 
 
@@ -41,41 +44,134 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     {
         qDebug()<<"鼠标左键按下"<<":"<<event->pos();
         int x=event->pos().x();
-        int y=event->pos().y();//二叉树搜索
+        int y=event->pos().y();//分治搜索
         if(x<=1441*Ui::size && x>=114*Ui::size && y>=1149*Ui::size && y<=1716*Ui::size){//左卡
             if(x>777*Ui::size){
                 if(x>1223*Ui::size){//1
-
+                    if(role::left_team.num>=1){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=0;
+                        Ui::light.name=role::left_team.each[0].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else if(x>1002*Ui::size){//2
-
+                    if(role::left_team.num>=2){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=1;
+                        Ui::light.name=role::left_team.each[1].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else{//3
-
+                    if(role::left_team.num>=3){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=2;
+                        Ui::light.name=role::left_team.each[2].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
             }
             else{
                 if(x>556*Ui::size){//4
-
+                    if(role::left_team.num>=4){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=3;
+                        Ui::light.name=role::left_team.each[3].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else if(x>335*Ui::size){//5
-
+                    if(role::left_team.num>=5){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=4;
+                        Ui::light.name=role::left_team.each[4].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else{//6
-
+                    if(role::left_team.num>=6){
+                        Ui::light.s=1;
+                        Ui::light.type=1;
+                        Ui::light.num=5;
+                        Ui::light.name=role::left_team.each[5].name_number;
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
             }
         }
         else if(x>=1608*Ui::size){
             if(y>=1167*Ui::size && x<=2921*Ui::size && y<=1701*Ui::size){//右卡
+                printf("1 ok\n");
                 if(x<2050*Ui::size){//1
-
+                    if(cha::cha[0]>=0){
+                        printf("2 ok");
+                        Ui::light.s=1;
+                        Ui::light.type=2;
+                        Ui::light.num=0;
+                        Ui::light.name=cha::cha[0];
+                        lightPaint->update();
+                    }
+                    else{
+                        printf("2 no");
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else if(x<2488*Ui::size){//2
-
+                    if(cha::cha[1]>=0){
+                        Ui::light.s=1;
+                        Ui::light.type=2;
+                        Ui::light.num=1;
+                        Ui::light.name=cha::cha[1];
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
                 else{//3
-
+                    if(cha::cha[2]>=0){
+                        Ui::light.s=1;
+                        Ui::light.type=2;
+                        Ui::light.num=2;
+                        Ui::light.name=cha::cha[2];
+                        lightPaint->update();
+                    }
+                    else{
+                        Ui::light.s=0;
+                        lightPaint->update();
+                    }
                 }
             }
             else if(x>=1639*Ui::size && x<=2211*Ui::size && y>=149*Ui::size && y<=1094*Ui::size){//大卡
@@ -86,15 +182,49 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
 
                 }
                 else if(y>=410*Ui::size && y<=607*Ui::size){//购买/出售
-
+                    if(Ui::light.s==1){
+                        if(Ui::light.type==1){//出售
+                            if(cha::gacha::cha_sell(Ui::light.num)){
+                                Ui::light.s=0;
+                                all_update();
+                            }
+                            else{
+                            }
+                        }
+                        else if(Ui::light.type==2){//购买
+                            if(cha::gacha::cha_buy(Ui::light.num)){
+                                Ui::light.s=0;
+                                all_update();
+                            }
+                        }
+                    }
                 }
                 else if(y>=652*Ui::size){//升本
-
+                    if(cha::gacha::cha_up()){
+                        cha::gacha::re();
+                        Ui::light.s=0;
+                        all_update();
+                    }
+                }
+                else{
+                    Ui::light.s=0;
+                    lightPaint->update();
                 }
             }
             else if(x>=2732*Ui::size && x<=2979*Ui::size && y>=913*Ui::size && y<=1162*Ui::size){//刷新
-
+                if(cha::gacha::re()){
+                    Ui::light.s=0;
+                    all_update();
+                }
             }
+            else{
+                Ui::light.s=0;
+                lightPaint->update();
+            }
+        }
+        else{
+            Ui::light.s=0;
+            lightPaint->update();
         }
     }
 }
@@ -120,7 +250,7 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     }
     if(event->key()==Qt::Key_Plus || event->key()==Qt::Key_Equal)
     {
-        qDebug()<<"检测到-/_按下";
+        qDebug()<<"检测到+/=按下";
         Ui::size*=1.05;
         update();
         rolePaint->update();
@@ -138,21 +268,51 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
     ,rolePaint(nullptr)
     ,lightPaint(nullptr)
+    ,poolPaint(nullptr)
 {
     // 使用当前时间作为种子
     srand((unsigned)time(NULL));
     ui->setupUi(this);
+    poolPaint = new Ui::pool_paint(this);
     rolePaint = new Ui::role_paint(this);
     lightPaint = new Ui::light_paint(this);
     this->setFixedSize(3072*Ui::size,1836*Ui::size);
-    fight::a_fight::tmp();
-    update();
-    rolePaint->update();
+    Ui::dur=1;
+    Ui::light.s=0;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+int MainWindow::qMain()
+{
+    /*  测试用
+    fight::a_fight::tmp();
+    update();
+    rolePaint->update();
+    Ui::light.s=0;
+    lightPaint->update();
+    sleep(5);
+    //Ui::light.s=1;
+    Ui::light.type=1;
+    Ui::light.num=2;
+    //lightPaint->update();
+    */
+
+    cha::gacha::load_card_pool(all_role_number);
+    cha::gacha::cha_begin();
+    poolPaint->update();
+    return 0;
+}
+
+void MainWindow::all_update()
+{
+    update();
+    rolePaint->update();
+    lightPaint->update();
+    poolPaint->update();
 }
 
 Ui::role_paint::role_paint(QWidget *parent)
@@ -262,7 +422,36 @@ Ui::light_paint::~light_paint()
 
 void Ui::light_paint::paintEvent(QPaintEvent *event)
 {
+    if(Ui::light.s && Ui::dur==1){
+        if(Ui::light.type==1){//左边
+            QPainter painter(this);
+            // 设置黄色画笔（用于边框）
+            QPen pen(Qt::yellow);
+            pen.setWidth(3);  // 设置边框宽度
+            painter.setPen(pen);
 
+            // 设置透明填充（或者设置黄色填充）
+            painter.setBrush(Qt::NoBrush);  // 透明填充
+            // 或者使用黄色填充：painter.setBrush(Qt::yellow);
+
+            // 绘制方形方框 (x, y, width, height)
+            painter.drawRect((L_card_place[Ui::light.num][0]-3)*Ui::size, (L_card_place[Ui::light.num][1]-3)*Ui::size, 224*Ui::size, 571*Ui::size);
+        }
+        else if(Ui::light.type==2){//右边
+            QPainter painter(this);
+            // 设置黄色画笔（用于边框）
+            QPen pen(Qt::yellow);
+            pen.setWidth(3);  // 设置边框宽度
+            painter.setPen(pen);
+
+            // 设置透明填充（或者设置黄色填充）
+            painter.setBrush(Qt::NoBrush);  // 透明填充
+            // 或者使用黄色填充：painter.setBrush(Qt::yellow);
+
+            // 绘制方形方框 (x, y, width, height)
+            painter.drawRect((card_pool_place[Ui::light.num][0]-3)*Ui::size, (card_pool_place[Ui::light.num][1]-3)*Ui::size, 440*Ui::size, 540*Ui::size);
+        }
+    }
 }
 
 Ui::pool_paint::pool_paint(QWidget *parent)
@@ -281,59 +470,87 @@ Ui::pool_paint::~pool_paint()
 
 void Ui::pool_paint::paintEvent(QPaintEvent *event)
 {
-    QPainter painter(this);
+    if(Ui::dur==1){
+        QPainter painter(this);
 
-    if(!this->backboard.isEmpty()) {//背景
-        QPixmap pix;
-        //QImage pix;
-        // 直接加载资源路径
+        if(!this->backboard.isEmpty()) {//背景
+            QPixmap pix;
+            //QImage pix;
+            // 直接加载资源路径
 
-        if(pix.load(this->backboard)) {
-            painter.drawPixmap(0, 0,3072*Ui::size,1836*Ui::size, pix);
-        } else {
-            qDebug() << "Failed to load pixmap:" << this->backboard;
+            if(pix.load(this->backboard)) {
+                painter.drawPixmap(0, 0,3072*Ui::size,1836*Ui::size, pix);
+            } else {
+                qDebug() << "Failed to load pixmap:" << this->backboard;
+            }
         }
-    }
-    int i=0;
-    for(int k=0;k<3;k++){
-        if(cha::cha[k]>=0){
-            simple_path=QString(simple[cha::cha[k]]);
-            if(!this->simple_path.isEmpty()) {
+        for(int k=0;k<3;k++){
+            if(cha::cha[k]>=0){
+                simple_path=QString(simple[cha::cha[k]]);
+                if(!this->simple_path.isEmpty()) {
+                    QPixmap pix;
+                    //QImage pix;
+                    // 直接加载资源路径
+                    if(pix.load(this->simple_path)) {
+                        painter.drawPixmap(card_pool_place[k][0]*Ui::size,card_pool_place[k][1]*Ui::size,434*Ui::size,534*Ui::size, pix);
+                    } else {
+                        qDebug() << "Failed to load pixmap:" << this->simple_path;
+                    }
+                }
+            }
+        }
+        {
+            QFont font("Arial", 70*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+            // 或者逐个设置
+            // font.setFamily("Arial");
+            // font.setPointSize(36);
+            // font.setBold(true);
+
+            // 设置抗锯齿
+            painter.setRenderHint(QPainter::Antialiasing);
+
+            // 应用字体
+            painter.setFont(font);
+
+            // 设置白色画笔
+            painter.setPen(Qt::white);
+
+            // 绘制数字
+            painter.drawText(2611*Ui::size,1080*Ui::size,QString::number(cha::coin));//钱
+            painter.drawText(2415*Ui::size,1080*Ui::size,QString::number(cha::shop_level));//本
+            painter.drawText(2806*Ui::size,1150*Ui::size,QString::number(cha::shop_level));//刷新
+            if(Ui::light.s && Ui::light.type==2){
+                painter.drawText(2670*Ui::size,538*Ui::size,QString::number(role::all_role_base[cha::cha[Ui::light.num]].level));
+            }
+            else if(Ui::light.s && Ui::light.type==1){
+
+            }
+            painter.drawText(2670*Ui::size,780*Ui::size,QString::number(cha::shop_level));
+        }
+        if(Ui::light.s){
+            big_path=QString(big[Ui::light.name]);
+            if(!this->big_path.isEmpty()) {
                 QPixmap pix;
                 //QImage pix;
                 // 直接加载资源路径
-                if(pix.load(this->simple_path)) {
-                    painter.drawPixmap(card_pool_place[i][0]*Ui::size,card_pool_place[i][1]*Ui::size,434*Ui::size,534*Ui::size, pix);
+                if(pix.load(this->big_path)) {
+                    painter.drawPixmap(1639*Ui::size,149*Ui::size,572*Ui::size,945*Ui::size, pix);
                 } else {
-                    qDebug() << "Failed to load pixmap:" << this->simple_path;
+                    qDebug() << "Failed to load pixmap:" << this->big_path;
                 }
             }
-            i++;
         }
-    }
-    if(Ui::light.s){
-        big_path=QString(big[Ui::light.name]);
-        if(!this->big_path.isEmpty()) {
-            QPixmap pix;
-            //QImage pix;
-            // 直接加载资源路径
-            if(pix.load(this->big_path)) {
-                painter.drawPixmap(1639*Ui::size,149*Ui::size,572*Ui::size,945*Ui::size, pix);
-            } else {
-                qDebug() << "Failed to load pixmap:" << this->big_path;
-            }
-        }
-    }
-    if(Ui::light.s==3){
-        big_path=QString(big[Ui::light.name]);
-        if(!this->big_path.isEmpty()) {
-            QPixmap pix;
-            //QImage pix;
-            // 直接加载资源路径
-            if(pix.load(this->big_path)) {
-                painter.drawPixmap(1019*Ui::size,10*Ui::size,1083*Ui::size,1787*Ui::size, pix);
-            } else {
-                qDebug() << "Failed to load pixmap:" << this->big_path;
+        if(Ui::light.s==3){
+            big_path=QString(big[Ui::light.name]);
+            if(!this->big_path.isEmpty()) {
+                QPixmap pix;
+                //QImage pix;
+                // 直接加载资源路径
+                if(pix.load(this->big_path)) {
+                    painter.drawPixmap(1019*Ui::size,10*Ui::size,1083*Ui::size,1787*Ui::size, pix);
+                } else {
+                    qDebug() << "Failed to load pixmap:" << this->big_path;
+                }
             }
         }
     }
