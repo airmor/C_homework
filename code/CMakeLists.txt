@@ -15,6 +15,7 @@ qt_add_executable(C_homework
     random.cpp random.h
     define_the_const.h
     gacha.h gacha.cpp
+    logwindow.h logwindow.cpp
 )
 
 target_link_libraries(C_homework

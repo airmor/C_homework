@@ -13,6 +13,9 @@
 #include<QMouseEvent>
 #include<QContextMenuEvent>
 #include<QMenu>
+#include <stdio.h>
+#include <stdarg.h>
+#include "logwindow.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -24,6 +27,11 @@ class pool_paint;
 struct LIGHT;
 extern struct LIGHT light;
 extern int dur;//阶段 0：战斗 1：抽卡 2：结算
+}
+
+namespace my_log_ {
+extern QString tmp_log;
+void my_log(const char format[256],...);
 }
 
 QT_END_NAMESPACE
@@ -39,14 +47,6 @@ protected:
     void wheelEvent(QWheelEvent *event)override;
 
 public:
-    static int get_buttom(){
-        return buttom;
-    };
-
-private:
-    static int buttom;
-
-public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     int main();
@@ -57,6 +57,8 @@ private:
     Ui::role_paint *rolePaint;
     Ui::light_paint *lightPaint;
     Ui::pool_paint *poolPaint;
+    // 声明全局日志窗口实例（关键：全局作用域）
+    LogWindow *g_log;
 
 private:
     const QString backboard1="source/backboard.png";

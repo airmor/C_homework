@@ -69,7 +69,7 @@ void gacha::load_card_pool( int count)
             info.level = 1;
         else if (info.level > 5)
             info.level = 5;
-        printf("level: %d %d\n",info.level,info.name_number);
+        //printf("level: %d %d\n",info.level,info.name_number);
         int idx = static_cast<int>(card_pool.size());
         card_pool.push_back(info);
         buckets[info.level].push_back(idx);

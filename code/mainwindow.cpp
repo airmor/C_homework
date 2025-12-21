@@ -131,10 +131,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         }
         else if(x>=1608*Ui::size){
             if(y>=1167*Ui::size && x<=2921*Ui::size && y<=1701*Ui::size){//右卡
-                printf("1 ok\n");
+                //printf("1 ok\n");
                 if(x<2050*Ui::size){//1
                     if(cha::cha[0]>=0){
-                        printf("2 ok");
+                        //printf("2 ok");
                         Ui::light.s=1;
                         Ui::light.type=2;
                         Ui::light.num=0;
@@ -179,7 +179,9 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             }
             else if(x>=2385*Ui::size && x<=2868*Ui::size && y>=164*Ui::size && y<=849*Ui::size){//按钮
                 if(y<=361*Ui::size){//战斗
-
+                    int l=20;
+                    char k[]="kkk";
+                    g_log->appendLog("zd"+QString(k)+QString::number(l)+"j %1 %2");
                 }
                 else if(y>=410*Ui::size && y<=607*Ui::size){//购买/出售
                     if(Ui::light.s==1){
@@ -246,16 +248,14 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         qDebug()<<"检测到-/_按下";
         Ui::size*=0.9523809523809524;
-        update();
-        rolePaint->update();
+        all_update();
         this->setFixedSize(3072*Ui::size,1836*Ui::size);
     }
     if(event->key()==Qt::Key_Plus || event->key()==Qt::Key_Equal)
     {
         qDebug()<<"检测到+/=按下";
         Ui::size*=1.05;
-        update();
-        rolePaint->update();
+        all_update();
         this->setFixedSize(3072*Ui::size,1836*Ui::size);
     }
 }
@@ -271,6 +271,7 @@ MainWindow::MainWindow(QWidget *parent)
     ,rolePaint(nullptr)
     ,lightPaint(nullptr)
     ,poolPaint(nullptr)
+    ,g_log(nullptr)
 {
     // 使用当前时间作为种子
     srand((unsigned)time(NULL));
@@ -279,6 +280,11 @@ MainWindow::MainWindow(QWidget *parent)
     rolePaint = new Ui::role_paint(this);
     lightPaint = new Ui::light_paint(this);
     this->setFixedSize(3072*Ui::size,1836*Ui::size);
+    // 2. 创建日志窗口，将主窗口设为父级
+    LogWindow *logWin = new LogWindow(this); // 关键：父对象为 MainWindow
+    g_log  = logWin;
+    logWin->show();
+    for(int kk=0;kk<100;kk++){g_log->appendLog("程序启动功 "+QString::number(kk));}
     Ui::dur=1;
     Ui::light.s=0;
 }
@@ -307,6 +313,7 @@ int MainWindow::qMain()
     cha::gacha::cha_begin();
     poolPaint->update();
     return 0;
+
 }
 
 void MainWindow::all_update()
@@ -315,6 +322,7 @@ void MainWindow::all_update()
     rolePaint->update();
     lightPaint->update();
     poolPaint->update();
+    g_log->update();
 }
 
 Ui::role_paint::role_paint(QWidget *parent)
@@ -347,7 +355,7 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
     int i=0;
     for(int k=0;k<role::left_team.num;k++){
             if(role::left_team.each[k].current_blood>0){
-                printf("hhh");
+                //printf("hhh");
                 if(role_path_l!=NULL){
                     path_role=QString(all_role_path[role_path_l[k]]);
                     path_card=QString(all_card_path[role_path_l[k]]);
@@ -560,3 +568,20 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
 }
 
 
+namespace my_log_
+{
+    QString tmp_log;
+    void my_log(const char format[],...)
+    {
+        char buf[512];
+        va_list ap;
+
+        va_start(ap, format);
+        // 用 vsprintf_s（安全版）处理可变参数的格式化
+        vsprintf_s(buf, sizeof(buf), format, ap);
+        va_end(ap);
+
+        // 输出日志（可改为写入文件）
+        printf("[Log] %s\n", buf);
+    }
+}
