@@ -35,15 +35,30 @@ struct role::role_base//角色基本参数（常数）
     int name_number;
     int level;
     int blood;
-    int attack[2];
+    int attack;
     int camp[2];
+    void (*skill_on_start)(role_current* self, enemy*, int);                    // 战斗开始时
+    void (*skill_on_attack)(role_current* self, enemy* target, int);    // 攻击时
+    void (*skill_on_hurt)(role_current* self, enemy*, int damage);         // 受到伤害时
+    void (*skill_on_death)(role_current* self, enemy*, int);                    // 死亡时
+    void (*skill_on_turn_end)(role_current* self, enemy*, int);                 // 回合结束时
 };
 
 struct role::role_current//角色实时状态
 {
     int name_number;//角色职业
-    int blood;//实时血量
+    int current_blood;//实时血量
+    int max_blood;
+    int attack;
+    
+    int base_max_blood;   // 基础最大血量
+    int base_attack;      // 基础攻击力
     float camp_influence;//阵营的影响
+    
+    int shield;           // 护盾值
+    int attack_buff;      // 临时攻击增益
+    int debuff_count;     // 负面状态计数
+    int first_blood; //1为已死 
 };
 
 struct role::team
@@ -56,6 +71,9 @@ struct role::enemy{
     int name;
     int level;
     int blood;
+    int base_attack; 
+    int current_attack; 
+    int attack_debuff;   
     struct role::enemy *next;
 };
 
@@ -68,6 +86,7 @@ public:
     static void tmp();
     static struct fight::change a_attack(int t);
     static void initialize_role();
+    static void calculate_camp_influence();
 };
 
 struct fight::change{
@@ -78,15 +97,17 @@ struct fight::change{
 
 class role::enemy_change{
 public:
-    void die(enemy_change* p);
-    void add(int num);
+    static void die(enemy* p);
+    static void add(int num);
 };
 
 struct role::enemy_base{
     char name[20];
     int name_number;
     int blood;
-    int attack[2];
+    int attack;
+    int current_attack;   // 当前攻击力（受debuff影响）
+    int attack_debuff;    // 攻击力减益层数
 };
 
 class role::skill{

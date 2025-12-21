@@ -185,6 +185,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                     if(Ui::light.s==1){
                         if(Ui::light.type==1){//出售
                             if(cha::gacha::cha_sell(Ui::light.num)){
+                                fight::a_fight::initialize_role();
                                 Ui::light.s=0;
                                 all_update();
                             }
@@ -193,6 +194,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                         }
                         else if(Ui::light.type==2){//购买
                             if(cha::gacha::cha_buy(Ui::light.num)){
+                                fight::a_fight::initialize_role();
                                 Ui::light.s=0;
                                 all_update();
                             }
@@ -344,7 +346,8 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     int i=0;
     for(int k=0;k<role::left_team.num;k++){
-            if(role::left_team.each[k].blood>0){
+            if(role::left_team.each[k].current_blood>0){
+                printf("hhh");
                 if(role_path_l!=NULL){
                     path_role=QString(all_role_path[role_path_l[k]]);
                     path_card=QString(all_card_path[role_path_l[k]]);
@@ -390,8 +393,8 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
                         painter.setPen(Qt::white);
 
                         // 绘制数字
-                        painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].blood)+"/"+QString::number(role::all_role_base[role_path_l[k]].blood));
-                        painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::all_role_base[role_path_l[k]].attack[0])+"d"+QString::number(role::all_role_base[role_path_l[k]].attack[1]));
+                        painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::all_role_base[role_path_l[k]].blood));
+                        painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[k].attack));
                         painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
                     } else {
                         qDebug() << "Failed to load pixmap:" << this->path_card;

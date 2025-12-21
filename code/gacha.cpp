@@ -34,7 +34,7 @@ bool pay(int cost)
 
 void gacha::cha_begin()
 {
-    coin = 1;
+    coin = 100000;
     shop_level = 1;
     for (int i = 0; i < 3; ++i)
         cha[i] = -1;
@@ -42,7 +42,8 @@ void gacha::cha_begin()
     for (int i = 0; i < max_of_a_team; ++i)
     {
         role::left_team.each[i].name_number = 0;
-        role::left_team.each[i].blood = 0;
+        role::left_team.each[i].base_max_blood = 0;
+        role::left_team.each[i].base_attack = 0;
         role::left_team.each[i].camp_influence = 1.0f;
     }
     generate_shop();
@@ -90,7 +91,8 @@ int gacha::cha_buy(int num)
     int name = cha[num];
     int pos = role::left_team.num;
     role::left_team.each[pos].name_number = name;
-    role::left_team.each[pos].blood = role::all_role_base[name].blood;
+    role::left_team.each[pos].base_max_blood = role::all_role_base[name].blood;
+    role::left_team.each[pos].base_attack =  role::all_role_base[name].attack;
     role::left_team.each[pos].camp_influence = 1.0f;
     role::left_team.num++;
 
@@ -110,7 +112,8 @@ int gacha::cha_sell(int num)
     if (role::left_team.num > 0)
     {
         role::left_team.each[role::left_team.num - 1].name_number = 0;
-        role::left_team.each[role::left_team.num - 1].blood = 0;
+        role::left_team.each[role::left_team.num - 1].base_max_blood = 0;
+        role::left_team.each[role::left_team.num - 1].base_attack = 0;
         role::left_team.each[role::left_team.num - 1].camp_influence = 1.0f;
         role::left_team.num--;
     }
