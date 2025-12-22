@@ -14,11 +14,15 @@
 #include <QBrush>
 #include "war.h"
 #include "gacha.h"
+#include "logwindow.h"
 namespace Ui {
 float size=0.5;
 struct LIGHT light;
 int dur;
 }
+
+// 声明全局日志窗口实例（关键：全局作用域）
+LogWindow *g_log;
 
 
 void MainWindow::paintEvent(QPaintEvent *event)
@@ -271,7 +275,6 @@ MainWindow::MainWindow(QWidget *parent)
     ,rolePaint(nullptr)
     ,lightPaint(nullptr)
     ,poolPaint(nullptr)
-    ,g_log(nullptr)
 {
     // 使用当前时间作为种子
     srand((unsigned)time(NULL));
@@ -566,22 +569,24 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
         }
     }
 }
-
-
-namespace my_log_
-{
-    QString tmp_log;
-    void my_log(const char format[],...)
+namespace my_log_ {
+    void my_log(const char format[], ...)
     {
         char buf[512];
         va_list ap;
 
         va_start(ap, format);
-        // 用 vsprintf_s（安全版）处理可变参数的格式化
-        vsprintf_s(buf, sizeof(buf), format, ap);
+        vsprintf_s(buf, sizeof(buf), format, ap); // 格式化输入参数到buf
         va_end(ap);
 
-        // 输出日志（可改为写入文件）
+        // 1. 保留原printf输出（可选）
         printf("[Log] %s\n", buf);
+
+        // 2. 转发到日志窗口（通过接口间接调用g_log）
+        if (g_log != nullptr) {
+            // 将C字符串转换为QString，使用UTF-8编码
+            QString qLog = QString::fromUtf8(buf);
+            g_log->appendLog(qLog); // 调用日志窗口的追加接口
+        }
     }
 }

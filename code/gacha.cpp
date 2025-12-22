@@ -47,7 +47,7 @@ void gacha::cha_begin()
         role::left_team.each[i].camp_influence = 1.0f;
     }
     generate_shop();
-    printf("%d %d %d",cha[0],cha[1],cha[2]);
+    my_log_::my_log("%d %d %d",cha[0],cha[1],cha[2]);
 }
 
 void gacha::load_card_pool( int count)
@@ -135,6 +135,7 @@ int gacha::re()
     if (!pay(1))
         return 0;
     generate_shop();
+    my_log_::my_log("%d %d %d",cha[0],cha[1],cha[2]);
     return 1;
 }
 
