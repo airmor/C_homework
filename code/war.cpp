@@ -1,13 +1,28 @@
 #include <stdio.h>
 #include "war.h"
 #include "random.h"
+#include "mainwindow.h"
+using namespace my_log_;
 using namespace role;
 using namespace random;
+void apply_damage_to_enemy(enemy* target, int damage);
+void check_unit_upgrade(role_current* unit)
+{
+    if (unit->growth_data1 >= 2) {
+        unit->base_attack += 1;
+        unit->base_max_blood += 1;
+        unit->attack = unit->base_attack;
+        unit->max_blood = unit->base_max_blood;
+        unit->current_blood += 1;
+        unit->growth_data1-=2;
+        printf("  [%s] 提升了属性。基础攻击+1，基础生命+1\n",role::all_role_base[unit->name_number].name);
+    }
+}
 namespace skill_store1 {
     using namespace role;
     using namespace random;
     // 技能1：战斗开始时对随机敌人造成1点伤害
-    void opening_damage(role_current* self, enemy*, int) {
+    void opening_damage(role_current* self) {
         if (role::root == nullptr) return;
         
         enemy* current = role::root;
@@ -32,7 +47,7 @@ namespace skill_store1 {
             if (current->blood<=0) enemy_change::die(current);
         }
     }
-    void weaken_attack(role_current* self, enemy* target,int) {
+    void weaken_attack(role_current* self, enemy* target) {
         if (target == nullptr) return;
         
         if (random::a_to_b(1, 100) <= 25) { 
@@ -42,12 +57,12 @@ namespace skill_store1 {
         }
         if (target->attack_debuff>=5) enemy_change::die(target);
     }
-    void self_damage(role_current* self, enemy* target,int) {
+    void self_damage(role_current* self, enemy* target) {
         if (target == nullptr) return;
         self->current_blood -= 1; 
         printf("[技能] %s 在攻击时受到1点反噬伤害\n",role::all_role_base[self->name_number].name);
     }
-    void heal_1(role_current* self, enemy*, int) {
+    void heal_1(role_current* self) {
         int self_index = -1;
         for (int i = 0; i < role::left_team.num; i++) {
             if (&role::left_team.each[i] == self) {
@@ -74,7 +89,7 @@ namespace skill_store1 {
         }
         
     }
-    void  soul_gain(role_current* self, enemy*, int)
+    void  soul_gain(role_current* self)
    {
         int self_index = -1;
         for (int i = 0; i < role::left_team.num; i++) 
@@ -86,7 +101,7 @@ namespace skill_store1 {
            }
 		}
 	}
-    void extra_debuff_damage(role_current* self, enemy* target,int) {
+    void extra_debuff_damage(role_current* self, enemy* target) {
         if (target == nullptr) return;
         enemy* current1 = role::root;
         printf("[技能] %s 对有负面状态的敌人造成额外伤害\n",role::all_role_base[self->name_number].name);
@@ -102,7 +117,7 @@ namespace skill_store1 {
             current1 = current1->next;
         }
     }
-    void random_second_target(role_current* self, enemy* first_target,int)
+    void random_second_target(role_current* self, enemy* first_target)
 	{
         if (random::a_to_b(1, 100) <= 25) 
 		{
@@ -136,13 +151,13 @@ namespace skill_store1 {
             }
         }
     }
-    void damage_reduction(role_current* self, enemy* ,int damage)
+    void damage_reduction(role_current* self,int damage)
 	{
         damage-=1;
         if (damage<1)damage=1; // 最少造成1点伤害
         printf("[技能] %s 的护甲减免了1点伤害\n",role::all_role_base[self->name_number].name);
     }
-    void death_gain(role_current* self, enemy*, int)
+    void death_gain(role_current* self)
 	{
         if (role::left_team.num <= 1) return; 
         int count=0;
@@ -163,7 +178,7 @@ namespace skill_store1 {
             printf("[技能] %s 死亡时，使 %s 获得+2攻击力\n", role::all_role_base[self->name_number].name,role::all_role_base[target->name_number].name);
         }
     }
-    void give_shield(role_current* self, enemy*, int)
+    void give_shield(role_current* self)
 	{
         if (role::left_team.num > 0) {
             role_current* front = &role::left_team.each[0];
@@ -174,98 +189,665 @@ namespace skill_store1 {
         }
     }
     // 空技能（占位用）
-    void no_skill(role_current* self, enemy*, int) {}
+    void no_skill(role_current* self) {}
+    void no_skill(role_current* self,int) {}
+    void no_skill(role_current* self,enemy*) {}
     void no_skill_with_target(role_current* self, enemy* target,int) {}
 }
+    namespace skill_store2
+    {
+    void knight_protect(role_current* self) {
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] == self) {
+                self_index = i;
+                break;
+            }
+        }
+
+        if (self_index == -1) return;
+
+        printf("[圣殿骑士] 释放守护光环\n");
+
+        self->shield = 1;
+        printf("  -> 自身获得1点护盾\n");
+
+        if (self_index < role::left_team.num - 1) {
+            role_current* right = &role::left_team.each[self_index + 1];
+            if (right->current_blood > 0) {
+                right->shield = 1;
+                printf("  -> 右侧[%s]获得1点护盾\n",role::all_role_base[right->name_number].name);
+            }
+        }
+    }
+    void pain_amplify(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int base_damage = self->attack;
+        int extra_damage = 0;
+
+        int debuff_layers = target->attack_debuff;
+
+        if (debuff_layers > 0) {
+            extra_damage = debuff_layers;
+            printf("[拷问官] 折磨已受伤的敌人！基于%d层debuff追加%d点伤害\n",debuff_layers, extra_damage);
+        }
+
+        int total_damage = base_damage + extra_damage;
+
+        apply_damage_to_enemy(target, total_damage);
+    }
+
+    void final_sentence(role_current* self) {
+        printf("[拷问官] 临终诅咒：让敌人感受痛苦！\n");
+
+        if (role::root == nullptr) {
+            printf("  没有敌人可以诅咒\n");
+            return;
+        }
+        enemy* last_enemy = role::root;
+        enemy* previous = nullptr;
+
+        while (last_enemy != nullptr && last_enemy->next != nullptr) {
+            previous = last_enemy;
+            last_enemy = last_enemy->next;
+        }
+
+        if (last_enemy == nullptr) {
+            printf("  找不到最后一个敌人\n");
+            return;
+        }
+        last_enemy->attack_debuff += 1;
+        last_enemy->current_attack = last_enemy->base_attack-1;
+        if (last_enemy->current_attack < 0) last_enemy->current_attack = 0;
+
+        printf("  -> 最后的敌人[%s] 攻击力-%d（当前:%d）\n",
+               last_enemy->name, 1, last_enemy->current_attack);
+    }
+    void blessing_priest_aoe(role_current* self) {
+        printf("[祝福祭司] 释放祝福光环\n");
+
+        int buffed_count = 0;
+
+        for (int i = 0; i < role::left_team.num; i++) {
+            role_current* teammate = &role::left_team.each[i];
+
+            if (teammate->current_blood > 0) {
+                teammate->attack += 1;
+                buffed_count++;
+
+                printf("  -> [%s] 攻击力+1（当前:%d）\n",
+                       role::all_role_base[teammate->name_number].name,
+                       teammate->attack);
+            }
+        }
+
+        printf("  总计为%d名友军增加了攻击力\n", buffed_count);
+
+        self->growth_data1 = 1;
+    }
+    // 祝福祭司技能2：死亡时 - 随机治疗一名友军2血
+    void blessing_final_prayer(role_current* self) {
+        printf("[祝福祭司] 临终祈祷\n");
+        // 收集可治疗目标
+        int candidates[max_of_a_team];
+        int count = 0;
+
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] != self &&
+                role::left_team.each[i].current_blood > 0) {
+                candidates[count++] = i;
+            }
+        }
+
+        if (count == 0) {
+            printf("  没有可以治疗的目标\n");
+            return;
+        }
+
+        // 随机选择
+        int idx = random::a_to_b(0, count - 1);
+        role_current* target = &role::left_team.each[candidates[idx]];
+
+        // 计算治疗量
+        int heal = 2;
+        int need = target->max_blood - target->current_blood;
+        if (heal > need) heal = need;
+
+        // 执行治疗
+        int old_blood = target->current_blood;
+        target->current_blood += heal;
+
+        printf("  -> 治疗[%s] %d血（%d→%d）\n",
+               role::all_role_base[target->name_number].name,
+               heal, old_blood, target->current_blood);
+    }
+    void wild_ranger_double_tap(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int base_damage = self->attack;
+
+        printf("[荒野射手] 射击！造成%d点伤害\n", base_damage);
+        apply_damage_to_enemy(target, base_damage);
+
+        if (random::a_to_b(1, 100) <= 50) {
+            printf("[荒野射手] 双重射击！再造成%d点伤害\n", base_damage);
+            apply_damage_to_enemy(target, base_damage);
+        }
+        if (random::a_to_b(1, 100) <= 25) {
+            printf("[荒野射手] san重射击！再造成%d点伤害\n", base_damage);
+            apply_damage_to_enemy(target, base_damage);
+        }
+    }
+
+
+    void wild_ranger_evade(role_current* self, int damage) {
+        if (random::a_to_b(1, 100) <= 50) {
+            printf("[荒野射手] 灵活闪避！躲避了%d点伤害\n", damage);
+        } else {
+            self->current_blood -= damage;
+            if (self->current_blood < 0) self->current_blood = 0;
+        }
+    }
+    void tactician_positioning(role_current* self) {
+        // 找到自己在队伍中的位置
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] == self) {
+                self_index = i;
+                break;
+            }
+        }
+        if (self_index == -1 || role::left_team.num <= 1) return;
+
+        // 随机选择一个其他友军
+        int target_index;
+        do {
+            target_index = random::a_to_b(0, role::left_team.num - 1);
+        } while (target_index == self_index);
+
+        role_current temp = role::left_team.each[self_index];
+        role::left_team.each[self_index] = role::left_team.each[target_index];
+        role::left_team.each[target_index] = temp;
+
+        printf("[战术家] 与 [%s] 交换了位置\n",
+               role::all_role_base[role::left_team.each[self_index].name_number].name);
+    }
+
+    // 战术家技能2：攻击时 - 若目标满血，伤害+3
+    void tactician_weakpoint(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int damage = self->attack;
+
+        // 检查目标是否满血
+        if (target->blood >= all_enemy_base[target->name].blood) {  // 假设 enemy 有 base_blood 字段
+            damage += 3;
+            printf("[战术家] 发现弱点！对满血目标额外造成2点伤害\n");
+        }
+
+        apply_damage_to_enemy(target, damage);
+    }
+    void soul_reaper_mark(role_current* self) {
+        if (role::root == nullptr) return;
+
+        // 统计敌人数量
+        enemy* current = role::root;
+        int enemy_count = 0;
+        while (current != nullptr) {
+            enemy_count++;
+            current = current->next;
+        }
+        if (enemy_count == 0) return;
+
+        // 随机选择一个敌人
+        int target_idx = random::a_to_b(0, enemy_count - 1);
+        current = role::root;
+        for (int i = 0; i < target_idx && current != nullptr; i++) {
+            current = current->next;
+        }
+
+        if (current != nullptr) {
+            current->vulnerable +=3;
+            printf("[灵魂收割者] 给 [%s] 施加了易伤印记！\n", current->name);
+            printf("  所有我方单位攻击该目标时额外造成3点伤害\n");
+            self->growth_data1 = target_idx;  // 存储目标索引
+        }
+    }
+    void soul_reaper_execute(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int damage = self->attack;
+
+        apply_damage_to_enemy(target, damage);
+
+        if (target->blood <= 0 && target->vulnerable > 0) {
+            printf("[灵魂收割者] 收割了易伤目标的灵魂！\n");
+            self->base_attack += 1;
+            self->attack = self->base_attack;
+
+            printf("  基础攻击力永久+1（当前：%d）\n", self->base_attack);
+        }
+    }
+    void elite_trainer_inspire(role_current* self)
+    {
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++)
+        {
+            if (&role::left_team.each[i] == self)
+            {
+                self_index = i;
+                break;
+            }
+        }
+        if (self_index == -1) return;
+
+        for (int i = 0; i < self_index; i++) {
+            role_current* front_unit = &role::left_team.each[i];
+            if (front_unit->current_blood > 0) {
+                const role_base& base = role::all_role_base[front_unit->name_number];
+
+                if (base.camp[0] == 0)
+                {
+                    front_unit->growth_data1 += 1;
+                    printf("  指导守序阵营的[%s]，经验+1（当前：%d/2）\n",
+                           base.name, front_unit->growth_data1);
+                    check_unit_upgrade(front_unit);
+                    return;  // 只找一个
+                }
+            }
+        }
+        printf("  前方没有守序阵营的友军指导\n");
+    }
+    void elite_trainer_protect(role_current* self, int damage)
+    {
+        self->current_blood -= damage;
+        if (self->current_blood < 0) self->current_blood = 0;
+
+        printf("[精英训练官] 受到%d点伤害\n", damage);
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] == self) {
+                self_index = i;
+                break;
+            }
+        }
+        if (self_index == -1) return;
+        for (int i = self_index + 1; i < role::left_team.num; i++)
+        {
+            role_current* back_unit = &role::left_team.each[i];
+            if (back_unit->current_blood > 0)
+            {
+                const role_base& base = role::all_role_base[back_unit->name_number];
+                if (base.camp[1] == 0) {  // 善良
+                    back_unit->growth_data1 += 1;  // 经验+1
+                    printf("  激励善良阵营的[%s]，经验+1（当前：%d/2）\n",
+                           base.name, back_unit->growth_data1);
+                    check_unit_upgrade(back_unit);
+                    return;  // 只找一个
+                }
+            }
+        }
+        printf("  后方没有善良阵营的友军关怀\n");
+    }
+    // 深渊吞噬者技能2：攻击时 - 若击杀，永久+1攻
+    void abyss_eater_devour(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int damage = self->attack;
+        int original_blood = target->blood;
+        apply_damage_to_enemy(target, damage);
+
+        // 检查是否击杀
+        if (original_blood > 0 && target->blood <= 0) {
+            self->base_attack += 1;  // 永久+1攻
+            self->attack = self->base_attack;
+            self->growth_data1 += 1;  // 击杀计数
+
+            printf("[深渊吞噬者] 吞噬灵魂！攻击力永久+1（累计击杀：%d）\n",
+                   self->growth_data1);
+        }
+    }
+
+    // 深渊吞噬者技能3：友军死亡时 - 永久+1血（限2次）
+    void abyss_eater_consume(role_current* self) {
+        if (self->growth_data2 < 2) {  // 最多2次
+            self->base_max_blood += 1;  // 永久+1最大生命
+            self->max_blood = self->base_max_blood;
+            self->current_blood += 1;   // 回1血
+            self->growth_data2 += 1;
+
+            printf("[深渊吞噬者] 吸收友军残魂！最大生命永久+1（%d/2）\n",
+                   self->growth_data2);
+            printf("  当前生命：%d/%d\n", self->current_blood, self->max_blood);
+        }
+    }
+    void beast_king_frenzy(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int damage = self->attack;
+        my_log("[荒野兽王]造成%d点伤害\n", damage);
+        apply_damage_to_enemy(target, damage);
+        if (random::a_to_b(1, 100) <= 50) {
+            my_log("[荒野兽王] 连击再造成%d点伤害\n", damage);
+            apply_damage_to_enemy(target, damage);
+        }
+    }
+    void beast_king_soul(role_current* self)
+    {
+        my_log("[荒野兽王]化作亡魂归来！\n");
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] == self) {
+                self_index = i;
+                break;
+            }
+        }
+        if (self_index == -1) return;
+        my_log("  召唤了一个3攻2血的亡魂\n");
+        self->current_blood=2;
+        self->max_blood=2;
+        self->attack=3;
+        self->attack_buff=0;
+        self->shield=0;
+        self->debuff_count=0;
+        self->is_ghost=1;
+        if (self_index < role::left_team.num - 1) {
+            role_current* back_unit = &role::left_team.each[self_index + 1];
+            if (back_unit->current_blood > 0) {
+                back_unit->current_blood += 2;
+                if (back_unit->current_blood > back_unit->max_blood) {
+                    back_unit->current_blood = back_unit->max_blood;
+                }
+                my_log("  亡魂立即强化了后方[%s]，生命+2\n",
+                       role::all_role_base[back_unit->name_number].name);
+            }
+        }
+    }
+    void ghost_heal_back(role_current* self)
+    {
+        if (self->is_ghost == 0) return;  // 不是亡魂
+
+        int self_index = -1;
+        for (int i = 0; i < role::left_team.num; i++) {
+            if (&role::left_team.each[i] == self) {
+                self_index = i;
+                break;
+            }
+        }
+
+        if (self_index == -1) return;
+
+        my_log("[亡魂] 释放灵魂能量\n");
+
+        if (self_index < role::left_team.num - 1) {
+            role_current* back_unit = &role::left_team.each[self_index + 1];
+            if (back_unit->current_blood > 0 && back_unit->growth_flag == 0) {
+                int old_blood = back_unit->current_blood;
+                back_unit->current_blood += 2;
+                if (back_unit->current_blood > back_unit->max_blood) {
+                    back_unit->current_blood = back_unit->max_blood;
+                }
+                if (back_unit->current_blood > old_blood) {
+                    my_log("  强化后方[%s]，生命+2（%d→%d）\n",
+                           role::all_role_base[back_unit->name_number].name,
+                           old_blood, back_unit->current_blood);
+                }
+            }
+        }
+    }
+    void flame_mage_mark(role_current* self) {
+        if (role::root == nullptr) return;
+        enemy* current = role::root;
+        int enemy_count = 0;
+        enemy* enemies[20];
+
+        while (current != nullptr && enemy_count < 20) {
+            enemies[enemy_count++] = current;
+            current = current->next;
+        }
+
+        if (enemy_count == 0) return;
+
+        int target_idx = random::a_to_b(0, enemy_count - 1);
+        enemy* target = enemies[target_idx];
+        target->vulnerable += 2;
+
+        my_log("[烈焰法师] 给[%s]施加了2层易伤！\n", target->name);
+        my_log("  所有攻击对该目标额外造成2点伤害\n");
+    }
+
+    // 烈焰法师技能2：攻击时 - 若目标有易伤，蔓延到另一个敌人
+    void flame_mage_spread_vuln(role_current* self, enemy* target) {
+        if (target == nullptr) return;
+
+        int damage = self->attack;
+        apply_damage_to_enemy(target, damage);
+        if (target->vulnerable > 0) {
+            if (role::root == nullptr) return;
+            enemy* current = role::root;
+            int available_count = 0;
+            enemy* available[20];
+
+            while (current != nullptr && available_count < 20) {
+                if (current != target) {
+                    available[available_count++] = current;
+                }
+                current = current->next;
+            }
+
+            if (available_count > 0) {
+                int spread_idx = random::a_to_b(0, available_count - 1);
+                enemy* spread_target = available[spread_idx];
+
+                // 给目标加1-2层易伤
+                int spread_amount = random::a_to_b(1, 2);
+                spread_target->vulnerable += spread_amount;
+
+                my_log("[烈焰法师] 易伤蔓延！[%s]获得%d层易伤（总计易伤目标：%d）\n",
+                       spread_target->name, spread_amount,spread_target->vulnerable);
+            }
+        }
+    }
+
+    // 烈焰法师技能3：死亡时 - 所有有易伤的敌人受到2点伤害
+    void flame_mage_final_burn(role_current* self) {
+        my_log("[烈焰法师] 临终灼烧！\n");
+        int burned_count = 0;
+        enemy* current = role::root;
+
+        while (current != nullptr) {
+            if (current->vulnerable > 0) {
+                current->blood -= 2;  // 造成2点伤害
+                burned_count++;
+
+                my_log("  灼烧[%s]（%d层易伤），造成2点伤害（剩余血量：%d）\n",
+                       current->name, current->vulnerable, current->blood);
+
+                if (current->blood <= 0) {
+                    enemy* next = current->next;
+                    role::enemy_change::die(current);
+                    current = next;
+                    continue;
+                }
+            }
+            current = current->next;
+        }
+        my_log("  总计灼烧了%d个敌人\n", burned_count);
+    }
+    void no_skill(role_current* self) {}
+    void no_skill(role_current* self,int) {}
+    void no_skill(role_current* self,enemy*) {}
+    }
 namespace role {
 const struct role_base all_role_base[all_role_number]={
-    // name,name_number,level,blood,attack,camp[2]
+    // name,name_number,level,cost,blood,attack,camp[2]
     {
-    	"  ",0,1,1,2,{0,1},
-		skill_store1::opening_damage,      // 战斗开始时：造成1点伤害
-        skill_store1::no_skill_with_target, // 攻击时：无技能
+        "  ",0,1,2,2,2,{0,1},
+        skill_store1::opening_damage,      // 战斗开始时：造成1点伤害
+        skill_store1::no_skill, // 攻击时：无技能
         skill_store1::no_skill,            // 受到伤害时：无技能
         skill_store1::no_skill,            // 死亡时：无技能
-        skill_store1::no_skill  
-	} ,
-	{
-        "  ",1,1,3,1,{0,2},
+        skill_store1::no_skill
+    } ,
+    {
+        "  ",1,1,2,3,1,{0,2},
         skill_store1::no_skill,
-        skill_store1::weaken_attack,         
+        skill_store1::weaken_attack,
         skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "邪术学徒",2,1,2,3,{2,2}, 
+        "邪术学徒",2,1,2,2,3,{2,2},
         skill_store1::no_skill,
-        skill_store1::self_damage,      
-        skill_store1::no_skill,
-        skill_store1::no_skill,
-        skill_store1::no_skill
-    },
-    {
-        "学徒牧师",3,1,1,1,{1,0}, 
-        skill_store1::no_skill,
-        skill_store1::no_skill_with_target,
-        skill_store1::no_skill,
-        skill_store1::no_skill,
-        skill_store1::heal_1 
-    },
-    {
-        "暗影信徒",4,1,2,1, {1,2},
-        skill_store1::no_skill,
-        skill_store1::no_skill_with_target,
-        skill_store1::no_skill,
-        skill_store1::soul_gain,      
-        skill_store1::no_skill
-    },
-    {
-        "弩手",5,1,1,2,{2,1}, 
-        skill_store1::no_skill,
-        skill_store1::extra_debuff_damage,   
+        skill_store1::self_damage,
         skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "游侠",6,1,3,2,{2,0}, 
+        "学徒牧师",3,1,2,1,1,{1,0},
         skill_store1::no_skill,
-        skill_store1::random_second_target,       
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::heal_1
+    },
+    {
+        "暗影信徒",4,1,2,2,1, {1,2},
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::soul_gain,
+        skill_store1::no_skill
+    },
+    {
+        "弩手",5,1,2,1,2,{2,1},
+        skill_store1::no_skill,
+        skill_store1::extra_debuff_damage,
         skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "盾卫",7,1,4,1,{1,1}, 
+        "游侠",6,1,2,3,2,{2,0},
         skill_store1::no_skill,
-        skill_store1::no_skill_with_target,
-        skill_store1::damage_reduction, 
+        skill_store1::random_second_target,
+        skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "预言学徒",8,1,1,2,{2,1}, 
+        "盾卫",7,1,2,4,1,{1,1},
         skill_store1::no_skill,
-        skill_store1::no_skill_with_target,
         skill_store1::no_skill,
-        skill_store1::death_gain,        
+        skill_store1::damage_reduction,
+        skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "治愈学徒",9,1,2,1,{0,0}, 
+        "预言学徒",8,1,2,1,2,{2,1},
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::death_gain,
+        skill_store1::no_skill
+    },
+    {
+        "治愈学徒",9,1,2,2,1,{0,0},
         skill_store1::give_shield,
-        skill_store1::no_skill_with_target,
+        skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill,
         skill_store1::no_skill
     },
     {
-        "侦察兵",10,1,4,2,{1,1},
-        skill_store1::no_skill,
-        skill_store1::no_skill_with_target,
+        "侦察兵",10,1,2,4,2,{1,1},
         skill_store1::no_skill,
         skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill
+    },
+    {
+        "圣殿骑士", 11, 2,3,5, 3, {0, 0},  // LG
+        skill_store2::knight_protect,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill
+    },
+    {
+        "荒野射手", 12, 2, 3, 3, 3, {2, 0},  // CG, cost=3
+        skill_store1::no_skill,
+        skill_store2::wild_ranger_double_tap,  // 攻击时：50%概率攻击两次
+        skill_store2::wild_ranger_evade,       // 受伤时：25%概率闪避
+        skill_store1::no_skill,
+        skill_store1::no_skill
+    },
+    {
+        "拷问官", 13, 2, 3, 4, 3, {0, 2},  // cost=3
+        skill_store2::no_skill,
+        skill_store2::pain_amplify,
+        skill_store2::no_skill,
+        skill_store2::final_sentence,
+        skill_store2::no_skill
+    },
+    {
+        "祝福祭司", 14, 2, 2, 2, 2, {0, 0},  // LG, cost=2
+        skill_store2::blessing_priest_aoe,     // 战斗开始：前方所有友军+1攻击
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store2::blessing_final_prayer,   // 死亡时：治疗随即一名友军1血
+        skill_store1::no_skill
+    },
+    {
+        "战术家", 15, 2, 2, 4, 3, {1, 1},  // TN, cost=1
+        skill_store2::tactician_positioning,   // 战斗开始：与一个友军交换位置
+        skill_store2::tactician_weakpoint,     // 攻击时：若目标满血，伤害+2
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill
+    },
+    {
+        "灵魂收割者", 16, 2, 3, 3, 2, {1, 2},  // NE, cost=3
+        skill_store2::soul_reaper_mark,        // 战斗开始：标记一个敌人
+        skill_store2::soul_reaper_execute,     // 攻击时：对标记目标伤害+3
+        skill_store1::no_skill,
+        skill_store1::no_skill,
+        skill_store1::no_skill
+    },
+    {
+        "精英训练官", 17, 2, 3, 3, 2, {0, 0},  // LG, cost=3 (改为守序善良)
+        skill_store2::elite_trainer_inspire,   // 战斗开始：若前方单位为守序阵营，经验+1
+        skill_store1::no_skill,
+        skill_store2::elite_trainer_protect,   // 受伤时：若后方单位为善良阵营，经验+1
+        skill_store1::no_skill,
+        check_unit_upgrade     // 回合结束：经验≥2时，永久+1/+1
+    },
+    {
+        "深渊吞噬者", 18, 2, 3, 2, 4, {1, 2},  // NE, cost=3
+        skill_store1::no_skill,
+        skill_store2::abyss_eater_devour,     // 攻击时：若击杀，永久+1攻
+        skill_store1::no_skill,
+        skill_store2::abyss_eater_consume,    // 友军死亡时：永久+1血（限2次）
+        skill_store1::no_skill
+    },
+    {
+        "荒野兽王", 19, 2, 3, 2, 3, {2, 0},  // CG, cost=2
+        skill_store1::no_skill,
+        skill_store2::beast_king_frenzy,      // 攻击时：50%双击
+        skill_store1::no_skill,
+        skill_store2::beast_king_soul,        // 死亡时：产生一个4-1的亡魂
+        skill_store2::ghost_heal_back
+    },
+    {
+        "烈焰法师", 20, 2, 3, 2, 4, {2, 1},  // CN, cost=3
+        skill_store2::flame_mage_mark,         // 战斗开始：给一个敌人挂3层易伤
+        skill_store2::flame_mage_spread_vuln,  // 攻击时：若目标有易伤，给随机另一个敌人也挂易伤
+        skill_store1::no_skill,
+        skill_store2::flame_mage_final_burn,   // 死亡时：所有有易伤的敌人受到2点伤害
         skill_store1::no_skill
     }
 };
@@ -301,6 +883,30 @@ int role::enemy_skill::mushi(int level)
 
 }
 */
+// 对敌人造成伤害（通用）
+void apply_damage_to_enemy(enemy* target, int damage) {
+    if (target == nullptr || damage <= 0) return;
+
+    // 检查易伤buff
+    if (target->vulnerable > 0) {
+        damage += target->vulnerable;
+        target->vulnerable--;
+        printf("  [易伤] 额外造成%d点伤害\n",target->vulnerable);
+    }
+
+    int original_blood = target->blood;
+    target->blood -= damage;
+
+    printf("  总共造成%d点伤害", damage);
+    if (original_blood > 0 && target->blood <= 0) {
+        printf("（击杀！）");
+    }
+    printf("\n");
+
+    if (target->blood <= 0) {
+        role::enemy_change::die(target);
+    }
+}
 void role::enemy_change::die(enemy* p) // 敌人用一个链表来管理,指针指向的敌人死亡
 {
     if (root == nullptr || p == nullptr) return;
@@ -346,7 +952,7 @@ fight::change fight::a_fight::a_attack(int t)
         //确定攻击对象
         
         if (all_role_base[left_attacker->name_number].skill_on_attack != NULL) {
-            all_role_base[left_attacker->name_number].skill_on_attack(left_attacker, right_defender,1);
+            all_role_base[left_attacker->name_number].skill_on_attack(left_attacker, right_defender);
         }
         //有无“攻击时”技能 
         int damage = left_attacker->attack;
@@ -388,7 +994,7 @@ void battle_start_skills() {
     for (int i = 0; i < left_team.num; i++) {
         const role_base& base = all_role_base[left_team.each[i].name_number];
         if (base.skill_on_start != NULL) {
-            base.skill_on_start(&left_team.each[i],NULL,1);
+            base.skill_on_start(&left_team.each[i]);
         }
     }
 }
@@ -479,18 +1085,23 @@ void fight::a_fight::calculate_camp_influence()
 void fight::a_fight::initialize_role()
 //初始化角色吧struct team left_team（已经定义好了，内容看头文件，代表角色实时状态）初始化，同时计算阵营影响也在这一步
 {
-	calculate_camp_influence();	
-	for (int i = 0; i < left_team.num; i++)
-	{
-		float influence = left_team.each[i].camp_influence;
+    calculate_camp_influence();
+    for (int i = 0; i < left_team.num; i++)
+    {
+        float influence = left_team.each[i].camp_influence;
         left_team.each[i].max_blood = left_team.each[i].base_max_blood;
         left_team.each[i].attack = left_team.each[i].base_attack;
-        
+
         left_team.each[i].max_blood = (int)(left_team.each[i].base_max_blood*influence);
         if (left_team.each[i].max_blood < 1) left_team.each[i].max_blood = 1;
-        
+
         left_team.each[i].attack = (int)(left_team.each[i].base_attack*influence);
         if (left_team.each[i].attack < 1) left_team.each[i].attack = 1;
+        left_team.each[i].shield=0;
+        left_team.each[i].attack_buff=0;
+        left_team.each[i].debuff_count=0;
+        left_team.each[i].first_blood=0;
+        left_team.each[i].is_ghost=0;
     }
     for (int i = 0; i < left_team.num; i++)
     {

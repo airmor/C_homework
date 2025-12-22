@@ -135,7 +135,7 @@ int gacha::re()
     if (!pay(1))
         return 0;
     generate_shop();
-    my_log_::my_log("%d %d %d",cha[0],cha[1],cha[2]);
+    my_log_::my_log("出现%d %d %d",cha[0],cha[1],cha[2]);
     return 1;
 }
 

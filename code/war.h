@@ -34,14 +34,15 @@ struct role::role_base//角色基本参数（常数）
     char name[20];
     int name_number;
     int level;
+    int cost;
     int blood;
     int attack;
     int camp[2];
-    void (*skill_on_start)(role_current* self, enemy*, int);                    // 战斗开始时
-    void (*skill_on_attack)(role_current* self, enemy* target, int);    // 攻击时
-    void (*skill_on_hurt)(role_current* self, enemy*, int damage);         // 受到伤害时
-    void (*skill_on_death)(role_current* self, enemy*, int);                    // 死亡时
-    void (*skill_on_turn_end)(role_current* self, enemy*, int);                 // 回合结束时
+    void (*skill_on_start)(role_current* self);                    // 战斗开始时
+    void (*skill_on_attack)(role_current* self, enemy* target);    // 攻击时
+    void (*skill_on_hurt)(role_current* self, int damage);         // 受到伤害时
+    void (*skill_on_death)(role_current* self);                    // 死亡时
+    void (*skill_on_turn_end)(role_current* self);                 // 回合结束时
 };
 
 struct role::role_current//角色实时状态
@@ -58,7 +59,19 @@ struct role::role_current//角色实时状态
     int shield;           // 护盾值
     int attack_buff;      // 临时攻击增益
     int debuff_count;     // 负面状态计数
-    int first_blood; //1为已死 
+    int first_blood; //1为已死
+    int growth_data1;  // 多用途（经验/层数/计数）
+    int growth_data2;  // 第二个计数器
+    int growth_flag;   // 状态标记
+    int is_ghost;
+};
+struct GhostUnit {
+    int owner_id;
+    int attack;
+    int max_blood;
+    int current_blood;
+    int position;
+    int alive_turns;        // 存活回合数
 };
 
 struct role::team
@@ -71,9 +84,10 @@ struct role::enemy{
     int name;
     int level;
     int blood;
-    int base_attack; 
-    int current_attack; 
-    int attack_debuff;   
+    int base_attack;
+    int current_attack;
+    int attack_debuff;
+    int vulnerable;
     struct role::enemy *next;
 };
 

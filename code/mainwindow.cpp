@@ -297,6 +297,35 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+int check(){
+    if(role::root==NULL){
+        return 1;
+    }
+    int r=2;
+    for(int i=0;i<role::left_team.num;i++){
+        if(role::left_team.each[i].current_blood>0){
+            r=0;
+        }
+    }
+    return r;
+}
+int MainWindow::a_war()
+{
+    Ui::light.s=0;
+    Ui::dur=0;
+    fight::a_fight::initialize_role();
+    role::enemy_change::add(6);
+    int result=0;//0:战斗中 1:赢 2:输
+    int i=0;
+    while(!result){
+        fight::a_fight::a_attack(i);
+        result = check();
+        i++;
+    }
+    Ui::dur=1;
+    return result;
+}
+
 int MainWindow::qMain()
 {
     /*  测试用
@@ -581,7 +610,6 @@ namespace my_log_ {
 
         // 1. 保留原printf输出（可选）
         printf("[Log] %s\n", buf);
-
         // 2. 转发到日志窗口（通过接口间接调用g_log）
         if (g_log != nullptr) {
             // 将C字符串转换为QString，使用UTF-8编码

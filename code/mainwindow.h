@@ -49,6 +49,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     int main();
+    int a_war();
     void all_update();
 
 private:
