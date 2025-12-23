@@ -51,11 +51,11 @@ struct role::role_current//角色实时状态
     int current_blood;//实时血量
     int max_blood;
     int attack;
-    
+
     int base_max_blood;   // 基础最大血量
     int base_attack;      // 基础攻击力
     float camp_influence;//阵营的影响
-    
+
     int shield;           // 护盾值
     int attack_buff;      // 临时攻击增益
     int debuff_count;     // 负面状态计数
@@ -65,13 +65,14 @@ struct role::role_current//角色实时状态
     int growth_flag;   // 状态标记
     int is_ghost;
 };
-struct GhostUnit {
-    int owner_id;
-    int attack;
-    int max_blood;
-    int current_blood;
-    int position;
-    int alive_turns;        // 存活回合数
+struct summon_unit {
+    int base_attack;       // 召唤物的基础攻击
+    int base_max_blood;    // 召唤物的基础生命
+    int current_blood;     // 召唤物的当前生命
+    int attack;            // 召唤物的当前攻击
+    int max_blood;         // 召唤物的最大生命
+    int original_unit_idx; // 对应的原始单位索引
+    int is_summon;         // 标记为召唤物
 };
 
 struct role::team
@@ -105,7 +106,7 @@ public:
 
 struct fight::change{
     int left[6][2];
-    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非1，没有为0，j表示变化,回血就是正的,扣血为负数
+    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非0，没有为0，j表示变化,回血就是正的,扣血为负数
     int right[6][2];
 };
 

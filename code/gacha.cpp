@@ -66,7 +66,7 @@ void gacha::load_card_pool( int count)
         info.name_number=role::all_role_base[i].name_number;
         // 夹紧等级到 1-5
         if (info.level < 1)
-            info.level = 1;
+            continue;
         else if (info.level > 5)
             info.level = 5;
         //printf("level: %d %d\n",info.level,info.name_number);

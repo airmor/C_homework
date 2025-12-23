@@ -15,6 +15,7 @@
 #include<QMenu>
 //#include <stdio.h>
 #include <stdarg.h>
+#include "war.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -24,9 +25,11 @@ class MainWindow;
 class role_paint;
 class light_paint;
 class pool_paint;
+class move_paint;
 struct LIGHT;
 extern struct LIGHT light;
 extern int dur;//阶段 0：战斗 1：抽卡 2：结算
+extern int all_blood;
 }
 
 namespace my_log_ {
@@ -57,6 +60,7 @@ private:
     Ui::role_paint *rolePaint;
     Ui::light_paint *lightPaint;
     Ui::pool_paint *poolPaint;
+    Ui::move_paint *movePaint;
 
 private:
     const QString backboard1="source/backboard.png";
@@ -78,6 +82,7 @@ protected:
 
 private:
     int *role_path_l;
+    int *role_path_r;
     QString path_role;
     QString path_card;
 
@@ -158,6 +163,28 @@ private:
         "source/roles/mushi_mianbang.png",
         "source/roles/sheshou_mianbang.png"
     };
+};
+
+class Ui::move_paint : public QWidget
+{
+
+public:
+    explicit move_paint(QWidget *parent = nullptr);  // 添加构造函数声明
+    ~move_paint();
+
+protected:
+    void paintEvent(QPaintEvent* event)override;
+
+private:
+    QString path_l;
+    QString path_r;
+    const QString background="source/window/b.png";
+
+private:
+    const int up[2]={-20,-40};
+    const int L_role_place[max_of_a_team][2]={{1248,564},{1004,564},{758,564},{517,564},{271,564},{27,564}};
+    const int R_role_place[max_of_a_team][2]={{1600,564},{1844,564},{2090,564},{2331,564},{2577,564},{2821,564}};
+
 };
 
 #endif // MAINWINDOW_H

@@ -12,6 +12,8 @@
 #include<QMetaEnum>
 #include <QPen>
 #include <QBrush>
+#include <QCoreApplication> // 需包含此头文件
+#include <QThread>
 #include "war.h"
 #include "gacha.h"
 #include "logwindow.h"
@@ -19,6 +21,260 @@ namespace Ui {
 float size=0.5;
 struct LIGHT light;
 int dur;
+int move;
+int move_l;
+int move_r;
+int l1;
+int r1;
+int all_blood;
+struct fight::change a_change1;
+struct fight::change a_change2;
+move_paint::move_paint(QWidget *parent)
+    : QWidget(parent)
+{
+    // 设置透明背景
+    setAttribute(Qt::WA_TranslucentBackground);
+    // 可选：设置固定大小
+    setFixedSize(3072*Ui::size, 1836*Ui::size);
+}
+
+move_paint::~move_paint()
+{
+
+}
+
+void move_paint::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+    if(Ui::move){
+        if(l1>=0){
+            char buf[100];
+            memset(buf,0,sizeof(buf));
+            sprintf_s(buf, sizeof(buf), "source/roles/%d.png", l1);
+            path_l=QString(buf);
+            memset(buf,0,sizeof(buf));
+            sprintf_s(buf, sizeof(buf), "source/roles/e%d.png", r1);
+            path_r=QString(buf);
+            //"source/roles/zhanshi.png"
+
+            //path_role=QString(all_role_path[role_path_l[k]]);
+            //path_card=QString(all_card_path[role_path_l[k]]);
+        }
+        else{
+            goto the_end;
+        }
+        if(!this->background.isEmpty()) {
+            QPixmap pix;
+            //QImage pix;
+            // 直接加载资源路径
+            if(pix.load(this->background)) {
+                // 水平翻转（左右翻折）
+                //QImage flippedImage = pix.flipped(Qt::Horizontal);
+
+                // 转换为QPixmap绘制
+                //QPixmap flippedPixmap = QPixmap::fromImage(flippedImage);
+                painter.drawPixmap(1247*Ui::size,531*Ui::size,592*Ui::size,289*Ui::size, pix);
+            } else {
+                qDebug() << "Failed to load pixmap:" << this->background;
+            }
+        }
+        if(!this->path_l.isEmpty()) {
+            //QPixmap pix;
+            QImage pix;
+            // 直接加载资源路径
+            if(pix.load(this->path_l)) {
+                // 水平翻转（左右翻折）
+                QImage flippedImage = pix.flipped(Qt::Horizontal);
+
+                // 转换为QPixmap绘制
+                QPixmap flippedPixmap = QPixmap::fromImage(flippedImage);
+                painter.drawPixmap((L_role_place[0][0]+Ui::move_l*50)*Ui::size,L_role_place[0][1]*Ui::size,224*Ui::size,224*Ui::size, flippedPixmap);
+            } else {
+                qDebug() << "Failed to load pixmap:" << this->path_l;
+            }
+        }
+        if(!this->path_r.isEmpty()) {
+            QPixmap pix;
+            //QImage pix;
+            // 直接加载资源路径
+            if(pix.load(this->path_r)) {
+                // 水平翻转（左右翻折）
+                //QImage flippedImage = pix.flipped(Qt::Horizontal);
+
+                // 转换为QPixmap绘制
+                //QPixmap flippedPixmap = QPixmap::fromImage(flippedImage);
+                painter.drawPixmap((R_role_place[0][0]-Ui::move_r*50)*Ui::size,R_role_place[0][1]*Ui::size,224*Ui::size,224*Ui::size, pix);
+            } else {
+                qDebug() << "Failed to load pixmap:" << this->path_r;
+            }
+        }
+        for(int i=0;i<max_of_a_team;i++){
+            if(a_change1.left[i][0]){
+                if(a_change1.left[i][1]<0){
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::red);
+
+                    // 绘制数字
+                    painter.drawText(L_role_place[i][0]*Ui::size,(L_role_place[i][1]+up[0])*Ui::size,QString::number(a_change1.left[i][1]));
+                }
+                else{
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::green);
+
+                    // 绘制数字
+                    painter.drawText(L_role_place[i][0]*Ui::size,(L_role_place[i][1]+up[0])*Ui::size,"+"+QString::number(a_change1.left[i][1]));
+                }
+            }
+            if(a_change1.right[i][0]){
+                if(a_change1.right[i][1]<0){
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::red);
+
+                    // 绘制数字
+                    painter.drawText(R_role_place[i][0]*Ui::size,(R_role_place[i][1]+up[0])*Ui::size,QString::number(a_change1.right[i][1]));
+                }
+                else{
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::green);
+
+                    // 绘制数字
+                    painter.drawText(R_role_place[i][0]*Ui::size,(R_role_place[i][1]+up[0])*Ui::size,"+"+QString::number(a_change1.right[i][1]));
+                }
+            }/*
+            if(a_change2.left[i][0]){
+                if(a_change2.left[i][1]<0){
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::red);
+
+                    // 绘制数字
+                    painter.drawText(L_role_place[i][0]*Ui::size,(L_role_place[i][1]+up[0])*Ui::size,QString::number(a_change2.left[i][1]));
+                }
+                else{
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::green);
+
+                    // 绘制数字
+                    painter.drawText(L_role_place[i][0]*Ui::size,(L_role_place[i][1]+up[0])*Ui::size,"+"+QString::number(a_change2.left[i][1]));
+                }
+            }
+            if(a_change2.right[i][0]){
+                if(a_change1.right[i][1]<0){
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::red);
+
+                    // 绘制数字
+                    painter.drawText(R_role_place[i][0]*Ui::size,(R_role_place[i][1]+up[1])*Ui::size,QString::number(a_change2.right[i][1]));
+                }
+                else{
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置红色画笔
+                    painter.setPen(Qt::green);
+
+                    // 绘制数字
+                    painter.drawText(R_role_place[i][0]*Ui::size,(R_role_place[i][1]+up[1])*Ui::size,"+"+QString::number(a_change2.right[i][1]));
+                }
+            }*/
+        }
+    }
+    the_end:
+    int l=0;
+}
+
 }
 
 // 声明全局日志窗口实例（关键：全局作用域）
@@ -44,7 +300,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if(event->button()== Qt::MouseButton::LeftButton)
+    if(event->button()== Qt::MouseButton::LeftButton && Ui::dur!=0)
     {
         qDebug()<<"鼠标左键按下"<<":"<<event->pos();
         int x=event->pos().x();
@@ -183,9 +439,15 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             }
             else if(x>=2385*Ui::size && x<=2868*Ui::size && y>=164*Ui::size && y<=849*Ui::size){//按钮
                 if(y<=361*Ui::size){//战斗
-                    int l=20;
-                    char k[]="kkk";
-                    g_log->appendLog("zd"+QString(k)+QString::number(l)+"j %1 %2");
+                    if(!a_war()){
+                        //结束函数
+
+
+
+
+
+
+                    }
                 }
                 else if(y>=410*Ui::size && y<=607*Ui::size){//购买/出售
                     if(Ui::light.s==1){
@@ -243,10 +505,26 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     if(event->key()==Qt::Key_Left || event->key()==Qt::Key_A)
     {
         qDebug()<<"检测到Left/A按下";
+        if(Ui::light.s==1 && Ui::light.type==1 && Ui::light.num+1<role::left_team.num){
+            struct role::role_current tmp=role::left_team.each[Ui::light.num];
+            role::left_team.each[Ui::light.num]=role::left_team.each[Ui::light.num+1];
+            Ui::light.num++;
+            role::left_team.each[Ui::light.num]=tmp;
+            lightPaint->update();
+            rolePaint->update();
+        }
     }
     if(event->key()==Qt::Key_Right || event->key()==Qt::Key_D)
     {
         qDebug()<<"检测到Righ/D按下";
+        if(Ui::light.s==1 && Ui::light.type==1 && Ui::light.num>0){
+            struct role::role_current tmp=role::left_team.each[Ui::light.num];
+            role::left_team.each[Ui::light.num]=role::left_team.each[Ui::light.num-1];
+            Ui::light.num--;
+            role::left_team.each[Ui::light.num]=tmp;
+            lightPaint->update();
+            rolePaint->update();
+        }
     }
     if(event->key()==Qt::Key_Minus || event->key()==Qt::Key_Underscore)
     {
@@ -275,6 +553,7 @@ MainWindow::MainWindow(QWidget *parent)
     ,rolePaint(nullptr)
     ,lightPaint(nullptr)
     ,poolPaint(nullptr)
+    ,movePaint(nullptr)
 {
     // 使用当前时间作为种子
     srand((unsigned)time(NULL));
@@ -282,6 +561,7 @@ MainWindow::MainWindow(QWidget *parent)
     poolPaint = new Ui::pool_paint(this);
     rolePaint = new Ui::role_paint(this);
     lightPaint = new Ui::light_paint(this);
+    movePaint = new Ui::move_paint(this);
     this->setFixedSize(3072*Ui::size,1836*Ui::size);
     // 2. 创建日志窗口，将主窗口设为父级
     LogWindow *logWin = new LogWindow(this); // 关键：父对象为 MainWindow
@@ -315,14 +595,79 @@ int MainWindow::a_war()
     Ui::dur=0;
     fight::a_fight::initialize_role();
     role::enemy_change::add(6);
+    all_update();
     int result=0;//0:战斗中 1:赢 2:输
     int i=0;
+    Ui::move=0;
     while(!result){
-        fight::a_fight::a_attack(i);
+        //左对右
+        Ui::a_change1 = fight::a_fight::a_attack(0);
+        Ui::move_l=0;
+        Ui::move_r=0;
+        Ui::move=1;
+        for(Ui::move_l=0;Ui::move_l<=3;++Ui::move_l){
+            movePaint->update();
+            QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+            //usleep(10);
+        }
+        for(Ui::move_l=2;Ui::move_l>=0;--Ui::move_l){
+            movePaint->update();
+            QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+            //usleep(10);
+        }
+        Ui::move_l=0;
+        movePaint->update();
+        rolePaint->update();
+        QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+        result=check();
+        if(result)break;
+        //右对左
+        Ui::a_change1= fight::a_fight::a_attack(1);
+        Ui::move_l=0;
+        Ui::move_r=0;
+        Ui::move=1;
+        for(Ui::move_r=0;Ui::move_r<=3;++Ui::move_r){
+            movePaint->update();
+            QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+            //usleep(10);
+        }
+        for(Ui::move_r=2;Ui::move_r>=0;--Ui::move_r){
+            movePaint->update();
+            QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+            //usleep(10);
+        }
+        Ui::move_r=0;
+        Ui::move=0;
+        movePaint->update();
+        //QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘）
+        rolePaint->update();
+        QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+        //end
         result = check();
+        // 替换 usleep，避免阻塞主线程，同时处理事件队列
+
+        //QThread::msleep(100); // Qt 线程安全的休眠（毫秒），不会完全阻塞事件循环
         i++;
     }
+    int num=0;
+    if(result==2){
+        role::enemy* current = role::root;
+        while (current != nullptr) {
+            current = current->next;
+            num++;
+        }
+        Ui::all_blood-=num;
+    }
     Ui::dur=1;
+    if(Ui::all_blood<=0){
+        result=0;
+        Ui::dur=2;
+    }
+    Ui::move_r=0;
+    Ui::move_l=0;
+    Ui::move=0;
+    cha::gacha::re();
+    all_update();
     return result;
 }
 
@@ -344,6 +689,7 @@ int MainWindow::qMain()
     cha::gacha::load_card_pool(all_role_number);
     cha::gacha::cha_begin();
     poolPaint->update();
+    Ui::all_blood=50;
     return 0;
 
 }
@@ -354,6 +700,7 @@ void MainWindow::all_update()
     rolePaint->update();
     lightPaint->update();
     poolPaint->update();
+    movePaint->update();
     g_log->update();
 }
 
@@ -389,8 +736,20 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
             if(role::left_team.each[k].current_blood>0){
                 //printf("hhh");
                 if(role_path_l!=NULL){
-                    path_role=QString(all_role_path[role_path_l[k]]);
-                    path_card=QString(all_card_path[role_path_l[k]]);
+                    if(i==0){
+                        Ui::l1=role_path_l[k];
+                    }
+                    char buf[100];
+                    memset(buf,0,sizeof(buf));
+                    sprintf_s(buf, sizeof(buf), "source/roles/%d.png", role_path_l[k]);
+                    path_role=QString(buf);
+                    memset(buf,0,sizeof(buf));
+                    sprintf_s(buf, sizeof(buf), "source/roles/%d_s.png", role_path_l[k]);
+                    path_card=QString(buf);
+                    //"source/roles/zhanshi.png"
+
+                    //path_role=QString(all_role_path[role_path_l[k]]);
+                    //path_card=QString(all_card_path[role_path_l[k]]);
                 }
                 else{
                     break;
@@ -433,9 +792,9 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
                         painter.setPen(Qt::white);
 
                         // 绘制数字
-                        painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::all_role_base[role_path_l[k]].blood));
+                        painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::left_team.each[k].max_blood));
                         painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[k].attack));
-                        painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
+                        painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[k].camp_influence));
                     } else {
                         qDebug() << "Failed to load pixmap:" << this->path_card;
                     }
@@ -445,6 +804,86 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
     }
     free(role_path_l);
     role_path_l=NULL;
+    if(dur==0){
+        role_path_r=(int *)malloc(max_of_a_team*sizeof(int));
+        int num=0;
+        role::enemy* current = role::root;
+        while (current != nullptr && num<6) {
+            current = current->next;
+            role_path_r[num]=current->name;
+            num++;
+        }
+        for(int i=0;i<num;i++){
+            //printf("hhh");
+            if(role_path_l!=NULL){
+                if(i==0){
+                    Ui::r1=role_path_r[0];
+                }
+                char buf[100];
+                memset(buf,0,sizeof(buf));
+                sprintf_s(buf, sizeof(buf), "source/roles/e%d.png", role_path_r[i]);
+                path_role=QString(buf);
+                memset(buf,0,sizeof(buf));
+                sprintf_s(buf, sizeof(buf), "source/roles/e%d_s.png", role_path_r[i]);
+                path_card=QString(buf);
+                //"source/roles/zhanshi.png"
+
+                //path_role=QString(all_role_path[role_path_l[k]]);
+                //path_card=QString(all_card_path[role_path_l[k]]);
+            }
+            else{
+                break;
+            }
+            if(!this->path_role.isEmpty()) {
+                QPixmap pix;
+                //QImage pix;
+                // 直接加载资源路径
+                if(pix.load(this->path_role)) {
+                    // 水平翻转（左右翻折）
+                    //QImage flippedImage = pix.flipped(Qt::Horizontal);
+
+                    // 转换为QPixmap绘制
+                    //QPixmap flippedPixmap = QPixmap::fromImage(flippedImage);
+                    painter.drawPixmap(R_role_place[i][0]*Ui::size,R_role_place[i][1]*Ui::size,224*Ui::size,224*Ui::size, pix);
+                } else {
+                    qDebug() << "Failed to load pixmap:" << this->path_role;
+                }
+            }
+            if(!this->path_card.isEmpty()) {
+                QPixmap pix;
+                //QImage pix;
+                // 直接加载资源路径
+
+                if(pix.load(this->path_card)) {
+                    painter.drawPixmap(R_card_place[i][0]*Ui::size,R_card_place[i][1]*Ui::size,218*Ui::size,565*Ui::size, pix);
+                    QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+                    // 或者逐个设置
+                    // font.setFamily("Arial");
+                    // font.setPointSize(36);
+                    // font.setBold(true);
+
+                    // 设置抗锯齿
+                    painter.setRenderHint(QPainter::Antialiasing);
+
+                    // 应用字体
+                    painter.setFont(font);
+
+                    // 设置白色画笔
+                    painter.setPen(Qt::white);
+                    /*
+                    // 绘制数字
+                    painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::all_role_base[role_path_l[k]].blood));
+                    painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[k].attack));
+                    painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
+                    */
+                } else {
+                    qDebug() << "Failed to load pixmap:" << this->path_card;
+                }
+            }
+        }
+        free(role_path_r);
+        role_path_r=NULL;
+    }
 }
 
 
@@ -513,8 +952,8 @@ Ui::pool_paint::~pool_paint()
 
 void Ui::pool_paint::paintEvent(QPaintEvent *event)
 {
+    QPainter painter(this);
     if(Ui::dur==1){
-        QPainter painter(this);
 
         if(!this->backboard.isEmpty()) {//背景
             QPixmap pix;
@@ -529,7 +968,11 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
         }
         for(int k=0;k<3;k++){
             if(cha::cha[k]>=0){
-                simple_path=QString(simple[cha::cha[k]]);
+                char buf[100];
+                memset(buf,0,sizeof(buf));
+                sprintf_s(buf, sizeof(buf), "source/roles/%d_s2.png", cha::cha[k]);
+                simple_path=QString(buf);
+                //simple_path=QString(simple[cha::cha[k]]);
                 if(!this->simple_path.isEmpty()) {
                     QPixmap pix;
                     //QImage pix;
@@ -571,7 +1014,11 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
             painter.drawText(2670*Ui::size,780*Ui::size,QString::number(cha::shop_level));
         }
         if(Ui::light.s){
-            big_path=QString(big[Ui::light.name]);
+            char buf[100];
+            memset(buf,0,sizeof(buf));
+            sprintf_s(buf, sizeof(buf), "source/roles/%d_m.png", Ui::light.name);
+            big_path=QString(buf);
+            //big_path=QString(big[Ui::light.name]);
             if(!this->big_path.isEmpty()) {
                 QPixmap pix;
                 //QImage pix;
@@ -602,6 +1049,7 @@ namespace my_log_ {
     void my_log(const char format[], ...)
     {
         char buf[512];
+        memset(buf,0,sizeof(buf));
         va_list ap;
 
         va_start(ap, format);
