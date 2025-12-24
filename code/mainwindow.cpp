@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+//#include <iostream>
+//#include <QPrinter>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include<QPaintEvent>
@@ -1057,11 +1059,12 @@ namespace my_log_ {
         va_end(ap);
 
         // 1. 保留原printf输出（可选）
-        printf("[Log] %s\n", buf);
+        //printf("[Log] %s\n", buf);
         // 2. 转发到日志窗口（通过接口间接调用g_log）
         if (g_log != nullptr) {
             // 将C字符串转换为QString，使用UTF-8编码
             QString qLog = QString::fromUtf8(buf);
+            //qDebug() <<"[log] " << qlog.toLatin1();
             g_log->appendLog(qLog); // 调用日志窗口的追加接口
         }
     }
