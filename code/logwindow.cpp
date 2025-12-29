@@ -32,7 +32,7 @@ LogWindow::LogWindow(QWidget *parent)
     this->setLayout(layout);
 
     // ========== 4. 固定窗口大小 + 左上方定位（核心修改） ==========
-    this->resize(600*Ui::size, 150*Ui::size); // 窗口大小按需调整
+    this->resize(1200*Ui::size, 400*Ui::size); // 窗口大小按需调整
 
     // 获取屏幕可用区域（排除任务栏）
     QScreen *screen = QGuiApplication::primaryScreen();

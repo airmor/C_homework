@@ -569,7 +569,7 @@ MainWindow::MainWindow(QWidget *parent)
     LogWindow *logWin = new LogWindow(this); // 关键：父对象为 MainWindow
     g_log  = logWin;
     logWin->show();
-    for(int kk=0;kk<100;kk++){g_log->appendLog("程序启动功 "+QString::number(kk));}
+    //for(int kk=0;kk<100;kk++){g_log->appendLog("程序启动功 "+QString::number(kk));}
     Ui::dur=1;
     Ui::light.s=0;
 }
@@ -596,11 +596,15 @@ int MainWindow::a_war()
     Ui::light.s=0;
     Ui::dur=0;
     fight::a_fight::initialize_role();
-    role::enemy_change::add(6);
+    role::enemy_change::add(4);
+    QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
     all_update();
     int result=0;//0:战斗中 1:赢 2:输
     int i=0;
     Ui::move=0;
+    fight::battle_start_skills();
+    QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+    all_update();
     while(!result){
         //左对右
         Ui::a_change1 = fight::a_fight::a_attack(0);
@@ -651,6 +655,10 @@ int MainWindow::a_war()
         //QThread::msleep(100); // Qt 线程安全的休眠（毫秒），不会完全阻塞事件循环
         i++;
     }
+    fight::turn_end_skills();
+    all_update();
+    QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+    //all_update();
     int num=0;
     if(result==2){
         role::enemy* current = role::root;
@@ -669,6 +677,8 @@ int MainWindow::a_war()
     Ui::move_l=0;
     Ui::move=0;
     cha::gacha::re();
+    fight::a_fight::initialize_role();
+    sleep(2);
     all_update();
     return result;
 }
@@ -811,19 +821,22 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
         int num=0;
         role::enemy* current = role::root;
         while (current != nullptr && num<6) {
-            current = current->next;
             role_path_r[num]=current->name;
+            current = current->next;
+            //my_log_::my_log("e:%d %d",num,role_path_r[num]);
             num++;
         }
         for(int i=0;i<num;i++){
             //printf("hhh");
-            if(role_path_l!=NULL){
+            if(role_path_r!=NULL){
                 if(i==0){
                     Ui::r1=role_path_r[0];
                 }
                 char buf[100];
                 memset(buf,0,sizeof(buf));
                 sprintf_s(buf, sizeof(buf), "source/roles/e%d.png", role_path_r[i]);
+                //printf("hh");
+                //printf(buf);
                 path_role=QString(buf);
                 memset(buf,0,sizeof(buf));
                 sprintf_s(buf, sizeof(buf), "source/roles/e%d_s.png", role_path_r[i]);

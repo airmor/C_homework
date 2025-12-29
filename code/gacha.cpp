@@ -37,7 +37,7 @@ namespace cha
 
     void gacha::cha_begin()
     {
-        coin = 3;
+        coin = 100000;
         shop_level = 1;
         for (int i = 0; i < 3; ++i)
             cha[i] = -1;
@@ -50,7 +50,7 @@ namespace cha
             role::left_team.each[i].camp_influence = 1.0f;
         }
         generate_shop();
-        my_log_::my_log("%d %d %d", cha[0], cha[1], cha[2]);
+        //my_log_::my_log("%d %d %d", cha[0], cha[1], cha[2]);
     }
 
     void gacha::load_card_pool(int count)
@@ -140,7 +140,7 @@ namespace cha
             return 0;
         generate_shop();
         refill_coins();
-        my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
+        //my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
         return 1;
     }
 

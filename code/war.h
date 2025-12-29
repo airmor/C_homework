@@ -18,7 +18,7 @@ class enemy_skill;
 extern const struct role::role_base all_role_base[all_role_number];
 extern struct role::team left_team;
 extern struct enemy* root;
-extern const struct role::enemy_base all_enemy_base[4];
+extern const struct role::enemy_base all_enemy_base[all_enemy_number];
 }
 
 namespace fight{
@@ -26,6 +26,8 @@ using namespace role;
 struct fight_current;
 class a_fight;
 struct change;
+void turn_end_skills();
+void battle_start_skills();
 }
 QT_END_NAMESPACE
 
@@ -106,7 +108,7 @@ public:
 
 struct fight::change{
     int left[6][2];
-    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非0，没有为0，j表示变化,回血就是正的,扣血为负数
+    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非1，没有为0，j表示变化,回血就是正的,扣血为负数
     int right[6][2];
 };
 
@@ -123,11 +125,15 @@ struct role::enemy_base{
     int attack;
     int current_attack;   // 当前攻击力（受debuff影响）
     int attack_debuff;    // 攻击力减益层数
+    void (*skill_on_attack)(enemy* self, role_current* target);    // 攻击时
+    void (*skill_on_hurt)(enemy* self, int damage);                // 受到伤害时
+    void (*skill_on_start)(enemy* self);                          // 战斗开始时
+    void (*skill_on_death)(enemy* self);                          // 死亡时
+    void (*skill_on_turn_end)(enemy* self);                       // 回合结束时
 };
 
 class role::skill{
     void skill0();
-    void skill1();
     //………………
 };
 
