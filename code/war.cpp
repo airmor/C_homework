@@ -2136,10 +2136,11 @@ fight::change fight::a_fight::a_attack(int t)
     enemy* right_defender = nullptr;
 
     if (t == 0) {
-        if (left_team.num <= 0 || left_team.each[0].current_blood <= 0) return all;
+        int first=(turn());
+        if (left_team.num <= 0 || first==-1) return all;
         if (root == nullptr || root->blood <= 0) return all;
 
-        role_current* left_attacker = &left_team.each[0];
+        role_current* left_attacker = &left_team.each[first];
         enemy* right_defender = root;
         //确定攻击对象
 

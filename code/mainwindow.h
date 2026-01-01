@@ -83,8 +83,11 @@ protected:
 private:
     int *role_path_l;
     int *role_path_r;
+    int *r_blood;
     QString path_role;
     QString path_card;
+    QString path_fang="source/window/fang.png";
+    QString path_df="source/window/df.png";
 
 private:
     const int L_role_place[max_of_a_team][2]={{1248,564},{1004,564},{758,564},{517,564},{271,564},{27,564}};
@@ -151,6 +154,8 @@ private:
 
 private:
     QString backboard="source/window/window1.png";
+    QString gm="source/window/gm.png";
+    QString cs="source/window/cs.png";
     const char simple[all_role_number][40]={
         "source/roles/zhanshi_simple2.png",
         "source/roles/fashi_simple2.png",

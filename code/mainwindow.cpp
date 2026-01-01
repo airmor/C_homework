@@ -701,7 +701,7 @@ int MainWindow::qMain()
     cha::gacha::load_card_pool(all_role_number);
     cha::gacha::cha_begin();
     poolPaint->update();
-    Ui::all_blood=50;
+    Ui::all_blood=10;
     return 0;
 
 }
@@ -719,6 +719,8 @@ void MainWindow::all_update()
 Ui::role_paint::role_paint(QWidget *parent)
     : QWidget(parent)
     , role_path_l(nullptr)
+    ,role_path_r(nullptr)
+    ,r_blood(nullptr)
 {
     // 设置透明背景
     setAttribute(Qt::WA_TranslucentBackground);
@@ -743,6 +745,23 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
         role_path_l[i]=role::left_team.each[i].name_number;
     }
     QPainter painter(this);
+    QFont font("Arial", 60*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+    // 或者逐个设置
+    // font.setFamily("Arial");
+    // font.setPointSize(36);
+    // font.setBold(true);
+
+    // 设置抗锯齿
+    painter.setRenderHint(QPainter::Antialiasing);
+
+    // 应用字体
+    painter.setFont(font);
+
+    // 设置白色画笔
+    painter.setPen(Qt::white);
+
+    // 绘制数字
+    painter.drawText(10*Ui::size,450*Ui::size,QString::fromUtf8("大本营血量：")+QString::number(Ui::all_blood));
     int i=0;
     for(int k=0;k<role::left_team.num;k++){
             if(role::left_team.each[k].current_blood>0){
@@ -788,6 +807,28 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
 
                     if(pix.load(this->path_card)) {
                         painter.drawPixmap(L_card_place[i][0]*Ui::size,L_card_place[i][1]*Ui::size,218*Ui::size,565*Ui::size, pix);
+                        int fang=role::left_team.each[k].shield;
+                        int df=role::left_team.each[k].debuff_count;
+                        int to_x=10;
+                        int to_y=10;
+                        while(fang>0){
+                            if(pix.load(this->path_fang)) {
+                                painter.drawPixmap((L_card_place[i][0]+to_x)*Ui::size,(L_card_place[i][1]+to_y)*Ui::size,30*Ui::size,38*Ui::size, pix);
+                            } else {
+                                qDebug() << "Failed to load pixmap:" << this->path_fang;
+                            }
+                            to_y+=35;
+                            --fang;
+                        }
+                        while(df>0){
+                            if(pix.load(this->path_df)) {
+                                painter.drawPixmap((L_card_place[i][0]+to_x)*Ui::size,(L_card_place[i][1]+to_y)*Ui::size,30*Ui::size,38*Ui::size, pix);
+                            } else {
+                                qDebug() << "Failed to load pixmap:" << this->path_df;
+                            }
+                            to_y+=35;
+                            --df;
+                        }
                         QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
                         // 或者逐个设置
                         // font.setFamily("Arial");
@@ -818,10 +859,12 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
     role_path_l=NULL;
     if(dur==0){
         role_path_r=(int *)malloc(max_of_a_team*sizeof(int));
+        r_blood=(int *)malloc(max_of_a_team*sizeof(int));
         int num=0;
         role::enemy* current = role::root;
         while (current != nullptr && num<6) {
             role_path_r[num]=current->name;
+            r_blood[num]=current->blood;
             current = current->next;
             //my_log_::my_log("e:%d %d",num,role_path_r[num]);
             num++;
@@ -885,18 +928,20 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
 
                     // 设置白色画笔
                     painter.setPen(Qt::white);
-                    /*
+
                     // 绘制数字
-                    painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::all_role_base[role_path_l[k]].blood));
-                    painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[k].attack));
-                    painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[i].camp_influence));
-                    */
+                    painter.drawText((R_card_place[i][0]+place_to_card[0][0])*Ui::size,(R_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(r_blood[i])+"/"+QString::number(role::all_enemy_base[role_path_r[i]].blood));
+                    painter.drawText((R_card_place[i][0]+place_to_card[1][0])*Ui::size,(R_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::all_enemy_base[role_path_r[i]].current_attack));
+                    painter.drawText((R_card_place[i][0]+place_to_card[2][0])*Ui::size,(R_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(0));
+
                 } else {
                     qDebug() << "Failed to load pixmap:" << this->path_card;
                 }
             }
         }
         free(role_path_r);
+        free(r_blood);
+        r_blood=NULL;
         role_path_r=NULL;
     }
 }
@@ -1021,9 +1066,32 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
             painter.drawText(2415*Ui::size,1080*Ui::size,QString::number(cha::shop_level));//本
             painter.drawText(2806*Ui::size,1150*Ui::size,QString::number(cha::shop_level));//刷新
             if(Ui::light.s && Ui::light.type==2){
-                painter.drawText(2670*Ui::size,538*Ui::size,QString::number(role::all_role_base[cha::cha[Ui::light.num]].level));
+                if(!this->gm.isEmpty()) {//背景
+                    QPixmap pix;
+                    //QImage pix;
+                    // 直接加载资源路径
+
+                    if(pix.load(this->gm)) {
+                        painter.drawPixmap(2463*Ui::size, 454*Ui::size,206*Ui::size,104*Ui::size, pix);
+                    } else {
+                        qDebug() << "Failed to load pixmap:" << this->gm;
+                    }
+                }
+                painter.drawText(2670*Ui::size,538*Ui::size,QString::number(role::all_role_base[cha::cha[Ui::light.num]].cost));
             }
             else if(Ui::light.s && Ui::light.type==1){
+                if(!this->cs.isEmpty()) {//背景
+                    QPixmap pix;
+                    //QImage pix;
+                    // 直接加载资源路径
+
+                    if(pix.load(this->cs)) {
+                        painter.drawPixmap(2463*Ui::size, 454*Ui::size,206*Ui::size,104*Ui::size, pix);
+                    } else {
+                        qDebug() << "Failed to load pixmap:" << this->cs;
+                    }
+                }
+                painter.drawText(2670*Ui::size,538*Ui::size,QString::number(role::all_role_base[cha::cha[Ui::light.num]].cost/2));
 
             }
             painter.drawText(2670*Ui::size,780*Ui::size,QString::number(cha::shop_level));
@@ -1058,6 +1126,24 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
                 }
             }
         }
+    }else if(Ui::dur==2){
+        QFont font("Arial", 160*Ui::size, QFont::Bold);  // 字体名，大小，粗细
+        // 或者逐个设置
+        // font.setFamily("Arial");
+        // font.setPointSize(36);
+        // font.setBold(true);
+
+        // 设置抗锯齿
+        painter.setRenderHint(QPainter::Antialiasing);
+
+        // 应用字体
+        painter.setFont(font);
+
+        // 设置白色画笔
+        painter.setPen(Qt::white);
+
+        // 绘制数字
+        painter.drawText(100*Ui::size,1000*Ui::size,QString::fromUtf8("你的大本营被攻破，游戏结束。"));
     }
 }
 namespace my_log_ {
