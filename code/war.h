@@ -66,6 +66,7 @@ struct role::role_current//角色实时状态
     int growth_data2;  // 第二个计数器
     int growth_flag;   // 状态标记
     int is_ghost;
+    int vulnerable;
 };
 struct summon_unit {
     int base_attack;       // 召唤物的基础攻击
@@ -108,7 +109,7 @@ public:
 
 struct fight::change{
     int left[6][2];
-    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非1，没有为0，j表示变化,回血就是正的,扣血为负数
+    //left[i][j]第一个数字代表是第i个角色数据有没有变化有为非0，没有为0，j表示变化,回血就是正的,扣血为负数
     int right[6][2];
 };
 

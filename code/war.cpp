@@ -197,6 +197,7 @@ namespace skill_store1 {
     {
         damage-=1;
         if (damage<1)damage=1; // 最少造成1点伤害
+        self->current_blood-=damage;
         printf("[技能] %s 的护甲减免了1点伤害\n",role::all_role_base[self->name_number].name);
     }
     void death_gain(role_current* self)
@@ -376,14 +377,14 @@ namespace skill_store1 {
             apply_damage_to_enemy(target, base_damage);
         }
         if (random::a_to_b(1, 100) <= 25) {
-            printf("[荒野射手] san重射击！再造成%d点伤害\n", base_damage);
+            printf("[荒野射手] 三重射击！再造成%d点伤害\n", base_damage);
             apply_damage_to_enemy(target, base_damage);
         }
     }
 
 
     void wild_ranger_evade(role_current* self, int damage) {
-        if (random::a_to_b(1, 100) <= 50) {
+        if (random::a_to_b(1, 100) <= 15) {
             printf("[荒野射手] 灵活闪避！躲避了%d点伤害\n", damage);
         } else {
             self->current_blood -= damage;
@@ -753,7 +754,6 @@ namespace skill_store1 {
         role_current* unit = &role::left_team.each[i];
         if (unit != self && unit->current_blood > 0) {
             unit->attack += 1;
-            buffed_count++;
             printf("  -> [%s] 攻击力+1（当前:%d）\n",
                    role::all_role_base[unit->name_number].name,
                    unit->attack);
@@ -761,8 +761,7 @@ namespace skill_store1 {
         }
     }
     void pain_conduction(role_current* self, int damage) {
-        self->current_blood -= damage;
-
+        self->current_blood-=damage;
         int self_index = -1;
         for (int i = 0; i < role::left_team.num; i++) {
             if (&role::left_team.each[i] == self) {
@@ -877,7 +876,7 @@ void reviving(role_current* self) {
 }
 
 void assassin_dodge(role_current* self, int damage) {
-    if (random::a_to_b(1, 100) <= 75) {
+    if (random::a_to_b(1, 100) <= 15) {
         printf("[闪避] %s 灵巧地闪避了攻击！\n",
                role::all_role_base[self->name_number].name);
         damage = 0;
@@ -920,7 +919,7 @@ void assassin_critical_strike(role_current* self, enemy* target) {
 
     int damage = self->attack;
 
-    if (random::a_to_b(1, 100) <= 75) {
+    if (random::a_to_b(1, 100) <= 40) {
         damage *= 2;
         printf("[致命一击] %s 打出暴击！\n",
                role::all_role_base[self->name_number].name);
@@ -1093,10 +1092,12 @@ void assassin_critical_strike(role_current* self, enemy* target) {
         if (self->current_blood < 0) self->current_blood = 0;
     }
     // 暗影巫师战斗开始时：随机诅咒两个敌人（attack_debuff+1）
-    void shadow_mage_start(role_current* self) {
+    void shadow_mage_start(role_current* self)
+    {
         printf("[暗影巫师] 释放双重暗影诅咒！\n");
 
-        if (role::root == nullptr) {
+        if (role::root == nullptr)
+        {
             printf("  没有敌人可以诅咒\n");
             return;
         }
@@ -1106,21 +1107,25 @@ void assassin_critical_strike(role_current* self, enemy* target) {
         int enemy_count = 0;
         enemy* enemies[10];
 
-        while (current != nullptr && enemy_count < 10) {
+        while (current != nullptr && enemy_count < 10)
+        {
             enemies[enemy_count++] = current;
             current = current->next;
         }
-
-        if (enemy_count < 2) {
+        printf("1");
+        QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
+        if (enemy_count < 2)
+        {
             printf("  敌人数量不足2个\n");
             // 如果只有一个敌人，只诅咒一个
-            if (enemy_count == 1) {
+            if (enemy_count == 1)
+            /*{
                 enemies[0]->attack_debuff += 1;
                 enemies[0]->current_attack = enemies[0]->base_attack - enemies[0]->attack_debuff;
                 if (enemies[0]->current_attack < 0) enemies[0]->current_attack = 0;
                 printf("  -> 诅咒了[%s]，攻击力-1（当前:%d）\n",
                        enemies[0]->name, enemies[0]->current_attack);
-            }
+            }*/
             return;
         }
         int cursed_count = 0;
@@ -1185,11 +1190,11 @@ void assassin_critical_strike(role_current* self, enemy* target) {
                 int target_idx = random::a_to_b(0, enemy_count - 1);
                 enemy* target = enemies[target_idx];
 
-                target->vulnerable += 3;
+                //target->vulnerable += 3;
 
                 printf("  -> [%s]获得3层易伤（所有攻击对其额外造成3点伤害）\n",
                        target->name);
-                printf("     当前易伤层数：%d\n", target->vulnerable);
+                //printf("     当前易伤层数：%d\n", target->vulnerable);
             }
         }
     }
@@ -1875,6 +1880,7 @@ void apply_damage_to_enemy(enemy* target, int damage) {
     // 检查易伤buff
     if (target->vulnerable > 0) {
         damage += target->vulnerable;
+        printf("%d",target->vulnerable);
         target->vulnerable--;
         printf("  [易伤] 额外造成%d点伤害\n",target->vulnerable);
     }
@@ -1944,9 +1950,10 @@ int a_add(int n,enemy* p){
     new_enemy->name=n;
     new_enemy->blood=all_enemy_base[n].blood;
     new_enemy->base_attack=all_enemy_base[n].attack;
-    new_enemy->attack_debuff=all_enemy_base[n].attack_debuff;
+    new_enemy->attack_debuff=0;
+    new_enemy->current_attack=all_enemy_base[n].attack;
     new_enemy->next=NULL;
-    //root->vulnerable=all_enemy_base[n].
+    new_enemy->vulnerable=0;
     p->next=new_enemy;
     //p=new_enemy;
     return 1;
@@ -1972,8 +1979,9 @@ int b_add(int n){
     root->name=n;
     root->blood=all_enemy_base[n].blood;
     root->base_attack=all_enemy_base[n].attack;
-    root->attack_debuff=all_enemy_base[n].attack_debuff;
-    //root->vulnerable=all_enemy_base[n].
+    root->attack_debuff=0;
+    root->current_attack=all_enemy_base[n].attack;
+    root->vulnerable=0;
     root->next = nullptr;
     return 1;
 }
@@ -1986,11 +1994,11 @@ void role::enemy_change::add(int num) //生成一个链表的敌人,个数为num
     m=num-l-r;
     int g=-1;
     if(num>=6){
-        g=random::a_to_b(1,m-1);
+//        g=random::a_to_b(1,m-1);
     }
     int k=-1;
     if(num>=9){
-        k=random::a_to_b(g+1,m);
+        k=random::a_to_b(1,m);
     }
     enemy *p=NULL;
     if(l>0){
@@ -2038,7 +2046,7 @@ void role::enemy_change::add(int num) //生成一个链表的敌人,个数为num
                 return;
             }
         }else if(ran<=70){
-            if(!b_add(1)){
+            if(!b_add(4)){
                 return;
             }
         }else if(ran<=80){
@@ -2077,7 +2085,7 @@ void role::enemy_change::add(int num) //生成一个链表的敌人,个数为num
                 return;
             }
         }else if(ran<=70){
-            if(!a_add(1,p)){
+            if(!a_add(4,p)){
                 return;
             }
         }else if(ran<=80){
@@ -2099,7 +2107,7 @@ void role::enemy_change::add(int num) //生成一个链表的敌人,个数为num
                 return;
             }
         }else if(ran<=50){
-            if(!a_add(1,p)){
+            if(!a_add(4,p)){
                 return;
             }
         }else if(ran<=80){
@@ -2167,13 +2175,15 @@ fight::change fight::a_fight::a_attack(int t)
         //printf("%d",first);
         enemy* right_attacker = root;
         role_current* left_defender = &(left_team.each[first]);
-
+        int fla=0;
         // 触发敌人的攻击前技能（如果有）
         int enemy_index = right_attacker->name;
         if (enemy_index >= 0 && enemy_index < 4) {
             const enemy_base& base = all_enemy_base[enemy_index];
             if (base.skill_on_attack != NULL) {
                 base.skill_on_attack(right_attacker, left_defender);
+                printf("%d",right_attacker->current_attack);
+                fla=1;
             }
         }
 
@@ -2184,7 +2194,7 @@ fight::change fight::a_fight::a_attack(int t)
         const role_base& defender_base = all_role_base[left_defender->name_number];
         if (defender_base.skill_on_hurt != NULL) {
             defender_base.skill_on_hurt(left_defender, damage);
-        } else {
+        } else if (fla==0){
             // 如果没有受伤技能，直接计算伤害
             int original_blood = left_defender->current_blood;
             left_defender->current_blood -= damage;
@@ -2199,13 +2209,6 @@ fight::change fight::a_fight::a_attack(int t)
                        shield_used);
             }
 
-            if (left_defender->current_blood < 0) {
-                left_defender->current_blood = 0;
-                if (left_defender->first_blood == 0) {
-                    left_defender->first_blood = 1;
-                }
-                damage = original_blood;
-            }
         }
 
         all.left[0][0] = 1;

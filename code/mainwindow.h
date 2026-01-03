@@ -84,6 +84,7 @@ private:
     int *role_path_l;
     int *role_path_r;
     int *r_blood;
+    int *r_df;
     QString path_role;
     QString path_card;
     QString path_fang="source/window/fang.png";

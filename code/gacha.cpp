@@ -68,7 +68,7 @@ namespace cha
             info.level = role::all_role_base[i].level;
             info.name_number = role::all_role_base[i].name_number;
             // 夹紧等级到 1-5
-            if (info.level < 1)
+            if (info.level < 1 || gacha::is_wrang(i)==1)
                 continue;
             else if (info.level > 5)
                 info.level = 5;
@@ -77,6 +77,15 @@ namespace cha
             card_pool.push_back(info);
             buckets[info.level].push_back(idx);
         }
+    }
+
+    int gacha::is_wrang(int a)
+    {
+        const int wrang[]={0,1,25,13,20,24,28,31,21,16,30};
+        for(int i=0;i<11;i++){
+            if(a==wrang[i]) return 1;
+        }
+        return 0;
     }
 
     int gacha::cha_buy(int num)
@@ -125,8 +134,11 @@ namespace cha
 
     int gacha::cha_up()
     {
-        if (shop_level >= 5)
+        if (shop_level >= 3)
+        {
+            my_log_::my_log("已经满级！");
             return 0;
+        }
         int cost = get_upgrade_cost();
         if (!pay(cost))
             return 0;
@@ -140,7 +152,7 @@ namespace cha
             return 0;
         generate_shop();
         refill_coins();
-        //my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
+        my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
         return 1;
     }
 

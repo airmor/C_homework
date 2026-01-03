@@ -29,8 +29,10 @@ public:
     // 从外部加载完整卡池（含等级），会在内部按等级分桶。
     // items: 长度为 count 的数组，level 约束在 1-5，越界会被夹紧到范围内。
     static void load_card_pool(int count);
+    static int is_wrang(int a);
 
 private:
+    //const int wrang[20]={};
     static void generate_shop();   // 生成当前三张卡
     static int pick_card();        // 按商店等级选一张卡（密度梯度抽卡）
     static int get_coin_limit();   // 获取当前商店等级的金币上限

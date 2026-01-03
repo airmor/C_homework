@@ -29,6 +29,7 @@ int move_r;
 int l1;
 int r1;
 int all_blood;
+int turn;
 struct fight::change a_change1;
 struct fight::change a_change2;
 move_paint::move_paint(QWidget *parent)
@@ -305,6 +306,10 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
     if(event->button()== Qt::MouseButton::LeftButton && Ui::dur!=0)
     {
         qDebug()<<"鼠标左键按下"<<":"<<event->pos();
+        if(Ui::dur==2){
+            qMain();
+            goto the_end;
+        }
         int x=event->pos().x();
         int y=event->pos().y();//分治搜索
         if(x<=1441*Ui::size && x>=114*Ui::size && y>=1149*Ui::size && y<=1716*Ui::size){//左卡
@@ -499,6 +504,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             lightPaint->update();
         }
     }
+    the_end:
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -570,8 +576,7 @@ MainWindow::MainWindow(QWidget *parent)
     g_log  = logWin;
     logWin->show();
     //for(int kk=0;kk<100;kk++){g_log->appendLog("程序启动功 "+QString::number(kk));}
-    Ui::dur=1;
-    Ui::light.s=0;
+
 }
 
 MainWindow::~MainWindow()
@@ -593,12 +598,14 @@ int check(){
 }
 int MainWindow::a_war()
 {
+
     Ui::light.s=0;
     Ui::dur=0;
     fight::a_fight::initialize_role();
-    role::enemy_change::add(4);
+    role::enemy_change::add(10);
     QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
     all_update();
+    QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
     int result=0;//0:战斗中 1:赢 2:输
     int i=0;
     Ui::move=0;
@@ -651,11 +658,12 @@ int MainWindow::a_war()
         //end
         result = check();
         // 替换 usleep，避免阻塞主线程，同时处理事件队列
-
+        fight::turn_end_skills();
+        all_update();
+        QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
         //QThread::msleep(100); // Qt 线程安全的休眠（毫秒），不会完全阻塞事件循环
         i++;
     }
-    fight::turn_end_skills();
     all_update();
     QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
     //all_update();
@@ -697,11 +705,12 @@ int MainWindow::qMain()
     Ui::light.num=2;
     //lightPaint->update();
     */
-
+    Ui::dur=1;
+    Ui::light.s=0;
     cha::gacha::load_card_pool(all_role_number);
     cha::gacha::cha_begin();
     poolPaint->update();
-    Ui::all_blood=10;
+    Ui::all_blood=100000;
     return 0;
 
 }
@@ -721,6 +730,7 @@ Ui::role_paint::role_paint(QWidget *parent)
     , role_path_l(nullptr)
     ,role_path_r(nullptr)
     ,r_blood(nullptr)
+    ,r_df(nullptr)
 {
     // 设置透明背景
     setAttribute(Qt::WA_TranslucentBackground);
@@ -847,7 +857,7 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
                         // 绘制数字
                         painter.drawText((L_card_place[i][0]+place_to_card[0][0])*Ui::size,(L_card_place[i][1]+place_to_card[0][1])*Ui::size, QString::number(role::left_team.each[k].current_blood)+"/"+QString::number(role::left_team.each[k].max_blood));
                         painter.drawText((L_card_place[i][0]+place_to_card[1][0])*Ui::size,(L_card_place[i][1]+place_to_card[1][1])*Ui::size, QString::number(role::left_team.each[k].attack));
-                        painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(role::left_team.each[k].camp_influence));
+                        painter.drawText((L_card_place[i][0]+place_to_card[2][0])*Ui::size,(L_card_place[i][1]+place_to_card[2][1])*Ui::size, QString::number(( (float)( (int)( (role::left_team.each[k].camp_influence+0.005)*100 ) ) )/100));
                     } else {
                         qDebug() << "Failed to load pixmap:" << this->path_card;
                     }
@@ -858,13 +868,18 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
     free(role_path_l);
     role_path_l=NULL;
     if(dur==0){
+        r_df=(int *)malloc(max_of_a_team*sizeof(int));
         role_path_r=(int *)malloc(max_of_a_team*sizeof(int));
         r_blood=(int *)malloc(max_of_a_team*sizeof(int));
+        memset(r_df,0,max_of_a_team*sizeof(int));
+        memset(role_path_r,0,max_of_a_team*sizeof(int));
+        memset(r_blood,0,max_of_a_team*sizeof(int));
         int num=0;
         role::enemy* current = role::root;
         while (current != nullptr && num<6) {
             role_path_r[num]=current->name;
             r_blood[num]=current->blood;
+            r_df[num]=current->vulnerable;
             current = current->next;
             //my_log_::my_log("e:%d %d",num,role_path_r[num]);
             num++;
@@ -914,6 +929,18 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
 
                 if(pix.load(this->path_card)) {
                     painter.drawPixmap(R_card_place[i][0]*Ui::size,R_card_place[i][1]*Ui::size,218*Ui::size,565*Ui::size, pix);
+                    int df=r_df[i];
+                    int to_x=10;
+                    int to_y=10;
+                    while(df>0){
+                        if(pix.load(this->path_df)) {
+                            painter.drawPixmap((L_card_place[i][0]+to_x)*Ui::size,(L_card_place[i][1]+to_y)*Ui::size,30*Ui::size,38*Ui::size, pix);
+                        } else {
+                            qDebug() << "Failed to load pixmap:" << this->path_df;
+                        }
+                        to_y+=35;
+                        --df;
+                    }
                     QFont font("Arial", 40*Ui::size, QFont::Bold);  // 字体名，大小，粗细
                     // 或者逐个设置
                     // font.setFamily("Arial");
@@ -941,6 +968,8 @@ void Ui::role_paint::paintEvent(QPaintEvent *event)
         }
         free(role_path_r);
         free(r_blood);
+        free(r_df);
+        r_df=NULL;
         r_blood=NULL;
         role_path_r=NULL;
     }
