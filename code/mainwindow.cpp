@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 #include <unistd.h>
 //#include <iostream>
 //#include <QPrinter>
@@ -308,7 +309,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         qDebug()<<"鼠标左键按下"<<":"<<event->pos();
         if(Ui::dur==2){
             qMain();
-            goto the_end;
+            return;
         }
         int x=event->pos().x();
         int y=event->pos().y();//分治搜索
@@ -478,6 +479,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
                 }
                 else if(y>=652*Ui::size){//升本
                     if(cha::gacha::cha_up()){
+                        cha::coin++;
                         cha::gacha::re();
                         Ui::light.s=0;
                         all_update();
@@ -504,7 +506,7 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
             lightPaint->update();
         }
     }
-    the_end:
+    //the_end:
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event)
@@ -538,15 +540,25 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
     {
         qDebug()<<"检测到-/_按下";
         Ui::size*=0.9523809523809524;
-        all_update();
         this->setFixedSize(3072*Ui::size,1836*Ui::size);
+        rolePaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        lightPaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        poolPaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        movePaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        g_log->resize(1200*Ui::size, 400*Ui::size);
+        all_update();
     }
     if(event->key()==Qt::Key_Plus || event->key()==Qt::Key_Equal)
     {
         qDebug()<<"检测到+/=按下";
         Ui::size*=1.05;
-        all_update();
         this->setFixedSize(3072*Ui::size,1836*Ui::size);
+        rolePaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        lightPaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        poolPaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        movePaint->setFixedSize(3072*Ui::size,1836*Ui::size);
+        g_log->resize(1200*Ui::size, 400*Ui::size);
+        all_update();
     }
 }
 
@@ -602,7 +614,7 @@ int MainWindow::a_war()
     Ui::light.s=0;
     Ui::dur=0;
     fight::a_fight::initialize_role();
-    role::enemy_change::add(10);
+    role::enemy_change::add((int)(sqrt(Ui::turn*1.8)),Ui::turn);
     QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
     all_update();
     QCoreApplication::processEvents(); // 强制处理所有未完成的事件（包括重绘
@@ -684,10 +696,13 @@ int MainWindow::a_war()
     Ui::move_r=0;
     Ui::move_l=0;
     Ui::move=0;
+    cha::coin+=((int)(sqrt(Ui::turn*1.8))-(int)(num/1.1))/2+1;
+    cha::coin++;
     cha::gacha::re();
     fight::a_fight::initialize_role();
     sleep(2);
     all_update();
+    Ui::turn++;
     return result;
 }
 
@@ -710,7 +725,8 @@ int MainWindow::qMain()
     cha::gacha::load_card_pool(all_role_number);
     cha::gacha::cha_begin();
     poolPaint->update();
-    Ui::all_blood=100000;
+    Ui::all_blood=10;
+    Ui::turn=1;
     return 0;
 
 }
@@ -1093,7 +1109,7 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
             // 绘制数字
             painter.drawText(2611*Ui::size,1080*Ui::size,QString::number(cha::coin));//钱
             painter.drawText(2415*Ui::size,1080*Ui::size,QString::number(cha::shop_level));//本
-            painter.drawText(2806*Ui::size,1150*Ui::size,QString::number(cha::shop_level));//刷新
+            painter.drawText(2806*Ui::size,1150*Ui::size,QString::number(1));//刷新
             if(Ui::light.s && Ui::light.type==2){
                 if(!this->gm.isEmpty()) {//背景
                     QPixmap pix;
@@ -1123,7 +1139,7 @@ void Ui::pool_paint::paintEvent(QPaintEvent *event)
                 painter.drawText(2670*Ui::size,538*Ui::size,QString::number(role::all_role_base[cha::cha[Ui::light.num]].cost/2));
 
             }
-            painter.drawText(2670*Ui::size,780*Ui::size,QString::number(cha::shop_level));
+            painter.drawText(2670*Ui::size,780*Ui::size,QString::number(cha::gacha::get_upgrade_cost()));//升本
         }
         if(Ui::light.s){
             char buf[100];

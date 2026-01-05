@@ -37,7 +37,7 @@ namespace cha
 
     void gacha::cha_begin()
     {
-        coin = 100000;
+        coin = 3;
         shop_level = 1;
         for (int i = 0; i < 3; ++i)
             cha[i] = -1;
@@ -116,7 +116,7 @@ namespace cha
     {
         if (num < 0 || num >= role::left_team.num)
             return 0;
-        coin += 1;
+        coin += (role::all_role_base[role::left_team.each[num].name_number].cost/2);
         for (int i = num; i < role::left_team.num - 1; ++i)
         {
             role::left_team.each[i] = role::left_team.each[i + 1];
@@ -151,8 +151,8 @@ namespace cha
         if (!pay(1))
             return 0;
         generate_shop();
-        refill_coins();
-        my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
+        //refill_coins();
+        //my_log_::my_log("出现%d %d %d", cha[0], cha[1], cha[2]);
         return 1;
     }
 
@@ -215,15 +215,15 @@ namespace cha
     int gacha::get_coin_limit()
     {
         // 金币上限：1本3，2本4，3本6，4本7，5本9
-        static const int coin_limits[6] = {0, 3, 4, 6, 7, 9};
+        static const int coin_limits[6] = {0, 300, 4000, 6000, 7000, 9000};
         return coin_limits[std::min(shop_level, 5)];
     }
 
     int gacha::get_upgrade_cost()
     {
         // 升本费用：1→2需2金币，2→3需3金币，3→4需5金币，4→5需7金币
-        static const int upgrade_costs[5] = {0, 2, 3, 5, 7};
-        if (shop_level >= 1 && shop_level <= 4)
+        static const int upgrade_costs[5] = {0, 5, 10, 5, 7};
+        if (shop_level >= 1 && shop_level <= 2)
             return upgrade_costs[shop_level];
         return 0;
     }
@@ -234,7 +234,7 @@ namespace cha
         if (coin < limit)
         {
             coin = limit;
-            my_log_::my_log("金币已补满至%d", coin);
+           my_log_::my_log("金币已补满至%d", coin);
         }
     }
 

@@ -116,7 +116,7 @@ struct fight::change{
 class role::enemy_change{
 public:
     static void die(enemy* p);
-    static void add(int num);
+    static void add(int num,int turn);
 };
 
 struct role::enemy_base{
