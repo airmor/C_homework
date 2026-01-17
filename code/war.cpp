@@ -136,7 +136,7 @@ namespace skill_store1 {
         int self_index = -1;
         for (int i = 0; i < role::left_team.num; i++)
         {
-            if ((role::left_team.each[i].current_blood==0)&&(role::left_team.each[i].first_blood==1)){
+            if ((role::left_team.each[i].current_blood==0)){
                 self->attack+=1;
                 role::left_team.each[i].first_blood=0;
                 printf("[技能] %s 将冰冷的尸体转化为温暖的力量，攻击力+1",role::all_role_base[self->name_number].name);
@@ -205,7 +205,7 @@ namespace skill_store1 {
         if (role::left_team.num <= 1) return;
         int count=0;
         int alive[6];
-
+        self->first_blood=1;
         for (int i = 0; i < role::left_team.num; i++)
         {
             if (&role::left_team.each[i] != self &&role::left_team.each[i].current_blood > 0)
@@ -863,7 +863,7 @@ void heal_1(role_current* self) {
     }
 void reviving(role_current* self) {
 
-    if (self->first_blood == 1) {
+    if (self->first_blood ==1) {
         int revive_hp = (self->max_blood+1) / 2;
         if (revive_hp < 1) revive_hp = 1;
 
@@ -1555,7 +1555,7 @@ const struct role_base all_role_base[all_role_number]={
         NULL
     },
     {
-        "游侠",6,1,2,3,2,{2,0},
+        "游侠",6,1,2,2,2,{2,0},
         NULL,
         skill_store1::random_second_target,
         NULL,
@@ -1587,7 +1587,7 @@ const struct role_base all_role_base[all_role_number]={
         NULL
     },
     {
-        "侦察兵",10,1,2,4,2,{1,1},
+        "侦察兵",10,1,2,2,2,{1,1},
         NULL,
         NULL,
         NULL,
@@ -2218,8 +2218,6 @@ fight::change fight::a_fight::a_attack(int t)
         } else if (fla==0){
             // 如果没有受伤技能，直接计算伤害
             int original_blood = left_defender->current_blood;
-            left_defender->current_blood -= damage;
-            //printf("h");
             // 处理护盾
             if (left_defender->shield > 0) {
                 int shield_used = (damage < left_defender->shield) ? damage : left_defender->shield;
@@ -2229,6 +2227,15 @@ fight::change fight::a_fight::a_attack(int t)
                        role::all_role_base[left_defender->name_number].name,
                        shield_used);
             }
+            else{
+            left_defender->current_blood -= damage;
+                if (left_defender->current_blood <=0)
+                {
+                left_defender->current_blood=0;
+                    left_defender->first_blood=1;
+                }
+            //printf("h");
+            }
 
         }
 
@@ -2236,7 +2243,7 @@ fight::change fight::a_fight::a_attack(int t)
         all.left[0][1] = -damage;
 
         // 检查是否死亡
-        if (left_defender->current_blood <= 0 && left_defender->first_blood == 1) {
+        if (left_defender->current_blood <= 0 ) {
             // 触发死亡技能
             if (defender_base.skill_on_death != NULL) {
                 defender_base.skill_on_death(left_defender);

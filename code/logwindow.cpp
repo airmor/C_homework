@@ -7,11 +7,11 @@
 LogWindow::LogWindow(QWidget *parent)
     : QWidget(parent)
 {
-    // ========== 1. 窗口透明 + 置顶（保留原有属性） ==========
+    //窗口透明 + 置顶（保留原有属性）
     this->setAttribute(Qt::WA_TranslucentBackground, true);
     this->setWindowFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
 
-    // ========== 2. 初始化日志控件（保留原有逻辑） ==========
+    //初始化日志控件（保留原有逻辑）
     m_logTextEdit = new QPlainTextEdit(this);
     m_logTextEdit->setReadOnly(true);
     m_logTextEdit->setStyleSheet(R"(
@@ -25,13 +25,13 @@ LogWindow::LogWindow(QWidget *parent)
         }
     )");
 
-    // ========== 3. 布局（保留原有逻辑） ==========
+    //布局（保留原有逻辑）
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(m_logTextEdit);
     layout->setContentsMargins(0, 0, 0, 0);
     this->setLayout(layout);
 
-    // ========== 4. 固定窗口大小 + 左上方定位（核心修改） ==========
+    // 固定窗口大小 + 左上方定位
     this->resize(1200*Ui::size, 400*Ui::size); // 窗口大小按需调整
 
     // 获取屏幕可用区域（排除任务栏）
@@ -51,7 +51,7 @@ LogWindow::~LogWindow()
 {
 }
 
-// 追加日志逻辑（保留不变）
+// 追加日志逻辑
 void LogWindow::appendLog(const QString &logText, const QColor &textColor)
 {
     QTextCursor cursor = m_logTextEdit->textCursor();
